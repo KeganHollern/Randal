@@ -15,6 +15,8 @@ discord.handle((message) => {
     const content = message.content;
     const sender = message.author.username;
 
+    channel
+
     channel.sendTyping();
     
     // generic memory setup
@@ -30,7 +32,10 @@ discord.handle((message) => {
         content: message
     });
 
-    react.query(chat_memory, content.replace("<@806981518483259412>", "Randal"))
+    react.query(
+        content.replace("<@806981518483259412>", "Randal"),
+        message,
+        chat_memory)
         .then(response => {
             // push response
             gpt.push_message(chat_memory, {

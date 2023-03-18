@@ -7,7 +7,6 @@ import {
     AudioPlayerStatus,
     StreamType,
     VoiceConnectionStatus,
-    EndBehaviorType,
 } from '@discordjs/voice';
 
 // callback function that if defined will handle messages
@@ -228,8 +227,6 @@ const remove_item = (guild_id, queue_index) => {
     }
     return undefined;
 }
-
-
 
 // create resource from our test audio
 const create_test_resource = () => {

@@ -4,7 +4,8 @@
 import * as gpt from './gpt.js'
 import * as youtube from './youtube.js'
 import { v4 as uuidv4 } from "uuid";
-
+import * as dalle from './dalle.js'
+import fs from 'fs'
 
 
 const setup_message = `
@@ -34,6 +35,10 @@ videos:
 e.g videos: https://www.youtube.com/playlist?list=PLlM8Z1s1PUFLFpHSGOC_i611ZBVjo4pSY
 Gets a list of videos associated with a playlist.
 
+dalle:
+e.g. dalle: A sketch of a smiling dog
+Generate an image using DALL-E and send it to the user.
+
 stop:
 e.g. stop: playing music
 Stop playing music in the users voice chat.
@@ -51,6 +56,7 @@ e.g. queue: list
 Retrieves a list of all songs in the song queue.
 
 Look things up on Wikipedia if you have the opportunity to do so.
+If there is no action, Answer as an assistant.
 If you need more context, you can Answer by asking the user for more information.
 
 Example session:
@@ -152,11 +158,34 @@ const known_actions = {
         console.log(`\tQueue: ${q}`);
         // TODO 
         return "action not implemented";
-    }
+    },
+    "dalle": async (q, source_message) => {
+        try {
+            const image_file = await dalle.generate(q);
+
+            // TODO: upload to discord chat
+            await source_message.channel.send({
+                files: [image_file]
+            });
+
+            fs.unlink(image_file, (error) => {
+                console.error(error); 
+            });
+
+            return `A generated image has been sent to the user.`;
+        } catch(err) {
+            return `Image creation failed: ${err}`
+        }
+    },
 }
 
 
-const query = async (history_block, question, max_turns = 10) => {
+const query = async (
+    question, // user input
+    source_message, // discord source message for action use
+    history_block, // previous chat history for context
+    max_turns = 5 // max iterations for thoughts
+) => {
     // we generate a unique memory block for each query
     //  we clone the chat history first
     //  we then feed our new system message defining ReAct fucntionality
@@ -168,7 +197,7 @@ const query = async (history_block, question, max_turns = 10) => {
 
     gpt.push_message(memory_block,{
         role: "assistant",
-        content: `Observation: chat history:\n${gpt.get_memory(history_block).slice(-10).map((entry) => `${entry.role}: ${entry.content}`).join("\n")}`
+        content: `Observation: chat history:\n${gpt.get_memory(history_block).slice(-20).map((entry) => `${entry.role}: ${entry.content}`).join("\n")}`
     })
 
 
@@ -190,7 +219,7 @@ const query = async (history_block, question, max_turns = 10) => {
                 gpt.forget(memory_block);
                 throw new Error(`Unknown action: ${action}: ${actionInput}`);
             }
-            let observation = await known_actions[action](actionInput)
+            let observation = await known_actions[action](actionInput, source_message)
             next_prompt = `Observation: ${observation}`
         } else {
             let idx = result.indexOf("Answer: ");
