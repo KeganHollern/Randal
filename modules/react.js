@@ -51,7 +51,7 @@ e.g. queue: list
 Retrieves a list of all songs in the song queue.
 
 Look things up on Wikipedia if you have the opportunity to do so.
-Always defer to the Talk action if no action fits.
+If you need more context, you can Answer by asking the user for more information.
 
 Example session:
 
@@ -168,7 +168,7 @@ const query = async (history_block, question, max_turns = 10) => {
 
     gpt.push_message(memory_block,{
         role: "assistant",
-        content: `Observation: chat history:\n${gpt.get_memory(history_block).map((entry) => `${entry.role}: ${entry.content}`).join("\n")}`
+        content: `Observation: chat history:\n${gpt.get_memory(history_block).slice(-10).map((entry) => `${entry.role}: ${entry.content}`).join("\n")}`
     })
 
 
