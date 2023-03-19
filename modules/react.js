@@ -17,6 +17,7 @@ At the end of the loop you output an Answer.
 Use Thought to describe your thoughts about the question or command you have been asked.
 Use Action to run one of the actions available to you - then return PAUSE.
 Observation will be the result of running those actions.
+Do not write your own Observations.
 
 Your available actions are:
 
@@ -31,11 +32,7 @@ Plays music from youtube in the users voice chat.
 
 youtube:
 e.g. youtube: Mr. Blue Sky
-Searches youtube for videos and playlists.
-
-videos:
-e.g videos: https://www.youtube.com/playlist?list=PLlM8Z1s1PUFLFpHSGOC_i611ZBVjo4pSY
-Gets a list of videos associated with a playlist.
+Searches youtube for videos.
 
 dalle:
 e.g. dalle: A sketch of a smiling dog
@@ -53,14 +50,22 @@ song:
 e.g. song: what song
 Retrieves the name and url of the song currently being played.
 
+anime:
+e.g. anime: PSYCHO PASS
+Returns information for an anime by searching MyAnimeList.
+
 queue:
 e.g. queue: list
 Retrieves a list of all songs in the song queue.
 
+bible:
+e.g. bible: sloth
+Returns verses from the bible relating to the search query.
+
 Always look things up on Wikipedia if you have the opportunity to do so.
 If there is no action, do not reply with an observation, Answer as an assistant.
 If you need more context, you can Answer by asking the user for more information.
-If you need to run multiple actions, you can have a Thought, Action, PAUSE before providing an answer.
+If you need to run multiple actions, you can have a Thought, Action, PAUSE in place of an Answer.
 
 Example session:
 
@@ -120,20 +125,18 @@ const known_actions = {
         results.videos.forEach((vid) => {
             result_content += `Video: ${vid.title} by ${vid.author} @ ${vid.url}\n`
         });
-        results.playlists.forEach((vid) => {
-            result_content += `Playlist: ${vid.title} by ${vid.author} @ ${vid.url}\n`
-        });
 
         return result_content;
     },
+    // TODO: play around with these respomnses. Are more robotic responses better for the AI to digest?
     "play": async (q, source_message) => {
         const guild = source_message.guild;
         if(guild === undefined) {
-            return "Could not play audio because the user is talking to us in a Direct Message."
+            return "You could not play audio because the user is talking to us in a Direct Message. The user does not know yet."
         }
         const voice_channel = source_message.member?.voice?.channel;
         if(voice_channel === undefined) {
-            return "Could not play audio because the user is not in a voice channel."
+            return "You could not play audio because the user is not in a voice channel. The user does not know yet."
         }
 
         console.log(`\tPlaying: ${q}`);
@@ -143,7 +146,7 @@ const known_actions = {
         
         const stream = youtube.stream_audio(url);
         if(stream === undefined) {
-            return "Failed to start streaming. Something is wrong."
+            return "You failed to start streaming the video. Something is wrong. The user does not know yet."
         }
         //console.log(stream);
         const resource = discord.create_audio_resource(stream);
@@ -166,19 +169,19 @@ const known_actions = {
     "stop": async (q, source_message) => {
         const guild = source_message.guild;
         if(guild === undefined) {
-            return "Could not stop playing music because the user is talking to us in a Direct Message."
+            return "You could not stop playing music because the user is talking to us in a Direct Message. The user does not know yet."
         }
         const voice_channel = source_message.member?.voice?.channel;
         if(voice_channel === undefined) {
-            return "Could not stop playing music because the user is not in a voice channel."
+            return "You could not stop playing music because the user is not in a voice channel. The user does not know yet."
         }
 
         console.log(`\tStop: ${q}`);
 
         if(!discord.stop_playing(guild.id))
-            return "Could not stop playing music because no music is being played."
+            return "You could not stop playing music because no music is being played. The user does not know yet."
 
-        return "You have stopped the music from playing.";
+        return "You have stopped the music from playing. The user does not know yet.";
     },
     "skip": async (q) => {
         console.log(`\tSkip: ${q}`);
@@ -209,11 +212,77 @@ const known_actions = {
                     console.error(error); 
             });
 
-            return `You have sent a generated image to the user. You have not told them in an Answer yet.`;
+            return `You have sent a generated image to the user. The user does not know yet.`;
         } catch(err) {
             return `Image creation failed: ${err}`
         }
     },
+    "anime": async (q) => {
+        console.log(`\tSearching MyAnimeList for: ${q}`);
+        const response = await fetch(
+            "https://api.jikan.moe/v4/anime?" +
+            new URLSearchParams({
+                "q": q,
+                "limit": "1",
+            }), {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "same-origin",
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: null,
+                signal: null,
+                keepalive: false,
+                referrer: "",
+                integrity: "",
+                destination: "",
+            });
+
+        const data = await response.json();
+        if(data.data.length === 0) {
+            return "Could not find that anime."
+        }
+        const anime_data = data.data[0];
+        return `Title: ${anime_data.title_english}\nURL: ${anime_data.url}\nEpisodes: ${anime_data.episodes}\nStatus: ${anime_data.status}\nScore: ${anime_data.score}/10\nSynopsis: ${anime_data.synopsis}`;
+    },
+    "bible": async (q) => {
+        console.log(`\tSearching Bible for: ${q}`);
+        const response = await fetch(
+            "https://api.scripture.api.bible/v1/bibles/de4e12af7f28f599-01/search?" +
+            new URLSearchParams({
+                "query": q,
+                "sort": "relevance",
+                "fuzziness": "AUTO",
+                "limit": "5",
+            }), {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "api-key": process.env.BIBLE_KEY,
+                },
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "same-origin",
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: null,
+                signal: null,
+                keepalive: false,
+                referrer: "",
+                integrity: "",
+                destination: "",
+            });
+
+        const data = await response.json();
+        if(data.data.verses.length === 0) {
+            return "Could not find any verses."
+        }
+        return data.data.verses.map(verse => `${verse.reference}: ${verse.text}"`).join("\n");
+    }
 }
 
 
