@@ -6,13 +6,14 @@ import * as youtube from './youtube.js'
 import { v4 as uuidv4 } from "uuid";
 import * as dalle from './dalle.js'
 import fs from 'fs'
+import * as discord from './discord.js'
+
 
 
 const setup_message = `
 Your name is Randal.
 You run in a loop of Thought, Action, PAUSE, Observation.
 At the end of the loop you output an Answer.
-Do not include a duplicate of the Observation with your Answer.
 Use Thought to describe your thoughts about the question or command you have been asked.
 Use Action to run one of the actions available to you - then return PAUSE.
 Observation will be the result of running those actions.
@@ -25,7 +26,8 @@ Returns a summary from searching Wikipedia.
 
 play:
 e.g. play: https://www.youtube.com/watch?v=dQw4w9WgXcQ
-Plays music from a youtube video in the users voice chat.
+e.g. play: EDM Music
+Plays music from youtube in the users voice chat.
 
 youtube:
 e.g. youtube: Mr. Blue Sky
@@ -48,16 +50,17 @@ e.g. skip: current song
 Skip the current song in the users voice chat.
 
 song:
-e.g. song: what is playing
-Retrieves the current song playing in the users voice chat.
+e.g. song: what song
+Retrieves the name and url of the song currently being played.
 
 queue:
 e.g. queue: list
 Retrieves a list of all songs in the song queue.
 
-Look things up on Wikipedia if you have the opportunity to do so.
-If there is no action, Answer as an assistant.
+Always look things up on Wikipedia if you have the opportunity to do so.
+If there is no action, do not reply with an observation, Answer as an assistant.
 If you need more context, you can Answer by asking the user for more information.
+If you need to run multiple actions, you can have a Thought, Action, PAUSE before providing an answer.
 
 Example session:
 
@@ -72,7 +75,7 @@ Observation: France is a country. The capital is Paris.
 
 You then output:
 
-Answer: The capital of France is Paris
+Answer: The capital of France is Parisslou
 `;
 
 
@@ -86,11 +89,8 @@ const known_actions = {
             "https://en.wikipedia.org/w/api.php?" +
             new URLSearchParams({
                 "action": "query",
-                "generator": "search",
-                "gsrsearch": q,
-                "prop": "extracts",
-                "explaintext": "true",
-                "exintro": "true",
+                "list": "search",
+                "srsearch": q,
                 "format": "json"
             }), {
                 method: "GET",
@@ -111,10 +111,7 @@ const known_actions = {
             });
 
         const data = await response.json();
-        //console.log(data);
-
-        return Object.values(data.query.pages)
-            .find((page)=>page.index == 1).extract;
+        return data.query.search[0].snippet;
     },
     "youtube": async (q) => {
         console.log(`\tSearching youtube for: ${q}`);
@@ -129,20 +126,59 @@ const known_actions = {
 
         return result_content;
     },
-    "play": async (q) => {
+    "play": async (q, source_message) => {
+        const guild = source_message.guild;
+        if(guild === undefined) {
+            return "Could not play audio because the user is talking to us in a Direct Message."
+        }
+        const voice_channel = source_message.member?.voice?.channel;
+        if(voice_channel === undefined) {
+            return "Could not play audio because the user is not in a voice channel."
+        }
+
         console.log(`\tPlaying: ${q}`);
-        // TODO 
-        return "action not implemented";
+        const video = await youtube.find_video(q);
+        const url = video.url;
+        const title = video.title;
+        
+        const stream = youtube.stream_audio(url);
+        if(stream === undefined) {
+            return "Failed to start streaming. Something is wrong."
+        }
+        //console.log(stream);
+        const resource = discord.create_audio_resource(stream);
+        //console.log(resource);
+        const item = discord.create_audio_item(title, resource);
+        //console.log(item);
+
+        const result = await discord.play_in_channel(voice_channel, item);
+        if(result) {
+            return `You have started playing ${title} @ ${url} for the user. The user does not know yet.`
+        } else {
+            return `You have have added ${title} @ ${url} to the queue for the user. The user does not know yet.`
+        }
     },
-    "videos": async (q) => {
+    "videos": async (q, source_message) => {
         console.log(`\tVideos: ${q}`);
         // TODO 
         return "action not implemented";
     },
-    "stop": async (q) => {
+    "stop": async (q, source_message) => {
+        const guild = source_message.guild;
+        if(guild === undefined) {
+            return "Could not stop playing music because the user is talking to us in a Direct Message."
+        }
+        const voice_channel = source_message.member?.voice?.channel;
+        if(voice_channel === undefined) {
+            return "Could not stop playing music because the user is not in a voice channel."
+        }
+
         console.log(`\tStop: ${q}`);
-        // TODO 
-        return "action not implemented";
+
+        if(!discord.stop_playing(guild.id))
+            return "Could not stop playing music because no music is being played."
+
+        return "You have stopped the music from playing.";
     },
     "skip": async (q) => {
         console.log(`\tSkip: ${q}`);
@@ -169,10 +205,11 @@ const known_actions = {
             });
 
             fs.unlink(image_file, (error) => {
-                console.error(error); 
+                if(error !== null)
+                    console.error(error); 
             });
 
-            return `A generated image has been sent to the user.`;
+            return `You have sent a generated image to the user. You have not told them in an Answer yet.`;
         } catch(err) {
             return `Image creation failed: ${err}`
         }

@@ -29,6 +29,8 @@ const downloadImage = (url) => {
 // generates an image with DALL-E and downloads it to disk.
 // call fs.unlink when you're done with the image.
 const generate = async (query) => {
+    
+    console.log("\tQuerying OpenAi...");
     const response = await openai.createImage({
         prompt: query,
         n: 1,

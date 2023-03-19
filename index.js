@@ -7,6 +7,10 @@ import * as react from './modules/react.js'
 const randal_message = "Your name is Randal. Answer as concisely as possible";
 const temp = 0.5;
 
+const Rates = new Map();
+const Replying = new Map();
+
+
 // Discord.Message<boolean>
 discord.handle((message) => {
     const voice_channel = message.member?.voice?.channel;
@@ -15,14 +19,45 @@ discord.handle((message) => {
     const content = message.content;
     const sender = message.author.username;
 
-    channel
+    // rate limit messaging per user
+    let last_msg = Rates.get(message.author.id);
+    Rates.set(message.author.id, Date.now()); // spamming every half second should lead to infinite timeout
+    if(last_msg !== undefined) {
+        let ms_dif = Date.now() - last_msg;
+        if(ms_dif < 2000) {
+            message.reply("too fast. please don't spam me.");
+            return;
+        }
+    }
+    
 
-    channel.sendTyping();
+    console.log("new message from " + sender);
+    if(message.author.id == '414286316109430794') {
+        message.reply('fuck you');
+        return
+    }
+
     
     // generic memory setup
     const chat_memory = guild ? guild.id : channel.id;
     if(!gpt.remembers(chat_memory)) {
         gpt.init(chat_memory, randal_message, temp);
+    }
+
+    // only reply to one message at a time per memory block
+    let is_replying = Replying.get(chat_memory);
+    if(is_replying !== undefined && is_replying === true) {
+        message.reply("I am working on the last request, please one at a time.");
+        return;
+    }
+    Replying.set(chat_memory, true);
+
+    try {
+        channel.sendTyping();
+    } catch(err) {
+        console.error(err);
+        Replying.set(chat_memory, false);
+        return;
     }
 
     // push the users message to history
@@ -57,8 +92,10 @@ discord.handle((message) => {
             parts.forEach((msg) => {
                 channel.send(msg);
             });
+            Replying.set(chat_memory, false);
         })
         .catch(err => {
+            Replying.set(chat_memory, false);
             channel.send("OOPSIE WOOPSIE!! Uwu We make a fucky wucky!! A wittle fucko boingo! The code monkeys at our headquarters are working VEWY HAWD to fix this!");
             if(err.response?.data !== undefined)
                 console.error(err.response.data);

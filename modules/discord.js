@@ -7,6 +7,8 @@ import {
     AudioPlayerStatus,
     StreamType,
     VoiceConnectionStatus,
+    NoSubscriberBehavior,
+    entersState,
 } from '@discordjs/voice';
 
 // callback function that if defined will handle messages
@@ -88,6 +90,7 @@ const on_player_idle = (guild_id) => {
     if(!next_item) {
         players.get(guild_id).now = "";
         connection.destroy(); // DISCONNECT from channel
+        return;
     }
 
     setTimeout(() => play_item(guild_id, next_item), 1000);
@@ -97,10 +100,13 @@ const on_player_idle = (guild_id) => {
 // expects an active voice connection
 // if no active connection - player will transition but not start playing
 const play_item = async (guild_id, item) => {
-    console.log(`${guild_id}: playing "${item.name}"`);
+    console.log("play_item 1");
     players.get(guild_id).now = item.name;
+    console.log("play_item 2");
     players.get(guild_id).player.play(item.resource);
-    waitFor(_ => player.audioPlayer.state.status != AudioPlayerStatus.Idle);
+    console.log("play_item 3");
+    waitFor(_ => players.get(guild_id).player.state.status != AudioPlayerStatus.Idle);
+    console.log(`${guild_id}: playing "${item.name}"`);
 }
 
 // join a voice channel and start playing the player for the guild
@@ -108,6 +114,7 @@ const join_voice = async (voice_channel) => {
     const guild_id = voice_channel.guild.id;
 
     let connection = getVoiceConnection(guild_id);
+   
     if(connection && connection.state.status !== VoiceConnectionStatus.Ready) {
         // invalid state - destroy connection and recreate
         connection.destroy();
@@ -122,12 +129,27 @@ const join_voice = async (voice_channel) => {
         guildId: guild_id,
         adapterCreator: voice_channel.guild.voiceAdapterCreator,
         selfDeaf: true, // we aren't spying on people lol
-    }); 
+        
+    }, {debug: true});
+
+    connection.on('stateChange', (oldState, newState) => {
+        console.log(`${guild_id}: Connection transitioned from ${oldState.status} to ${newState.status}`);
+    });
+    connection.on('error',(error) => {
+        console.error(`${guild_id}: error with voice connection`);
+    });
+    connection.on('debug',(m) => {
+        console.error(`${guild_id}: DEBUG: ${m}`);
+    });
+
+    
     connection.subscribe(players.get(guild_id).player);
     await waitFor(_ => 
-        conn.state.status == VoiceConnectionStatus.Ready
+        connection.state.status == VoiceConnectionStatus.Ready
         ||
-        conn.state.status == VoiceConnectionStatus.Destroyed);
+        connection.state.status == VoiceConnectionStatus.Destroyed);
+    
+    console.log(`joined voice channel ${voice_channel.id}`);
 }
 
 // --- exposed functionality
@@ -143,7 +165,11 @@ const init = () => {
         guilds.forEach(guild => {
             console.log(`creating player for ${guild.id}`)
             let guild_player = {
-                player: createAudioPlayer(),
+                player: createAudioPlayer({
+                    behaviors: {
+                        noSubscriber: NoSubscriberBehavior.Play,
+                    },
+                }),
                 queue: [],
                 now: null,
             };
@@ -151,6 +177,7 @@ const init = () => {
             // set events for player
             guild_player.player.on('error', (err) => on_player_error(guild.id, err));
             guild_player.player.on(AudioPlayerStatus.Idle, () => on_player_idle(guild.id));
+            guild_player.player.on('stateChange', (old, n) => console.log(`${guild.id}: state change ${old.status} > ${n.status}`));
 
             players.set(guild.id, guild_player)
         });
@@ -160,7 +187,7 @@ const init = () => {
 
 // play provided item in channel
 // pushes to queue if items are already playing
-const play_in_channel = async(voice_channel, item) => {
+const play_in_channel = async (voice_channel, item) => {
     const guild_id = voice_channel.guild.id;
 
     await join_voice(voice_channel);
@@ -188,7 +215,7 @@ const create_audio_item = (name, resource) => {
 //  also clears the queue
 //  returns false if audio was not playing
 const stop_playing = (guild_id) => {
-    const guild_player = players.get(voice_channel.guild.id);
+    const guild_player = players.get(guild_id);
     if(guild_player.player.state.status === AudioPlayerStatus.Playing) {
         guild_player.queue = [];
         guild_player.player.stop();
@@ -200,26 +227,26 @@ const stop_playing = (guild_id) => {
 
 // clear the audio queue for a guild
 const clear_queue = (guild_id) => {
-    const guild_player = players.get(voice_channel.guild.id);
+    const guild_player = players.get(guild_id);
     guild_player.queue = [];
 }
 
 // get the queue for a guild
 const get_queue = (guild_id) => {
-    const guild_player = players.get(voice_channel.guild.id);
+    const guild_player = players.get(guild_id);
     return guild_player.queue;
 }
 
 // skip the current playing audio
 const skip_audio = (guild_id) => {
-    const guild_player = players.get(voice_channel.guild.id);
+    const guild_player = players.get(guild_id);
     guild_player.player.stop();
 }
 
 // removes an item from the queue 
 //  returns the item or undefined if out of bounds
-const remove_item = (guild_id, queue_index) => {
-    const guild_player = players.get(voice_channel.guild.id);
+const remove_item = (guild_id, idx) => {
+    const guild_player = players.get(guild_id);
     if(idx <= guild_player.queue.length && idx > 0) {
         const item = guild_player.queue[idx-1];
         guild_player.queue.splice(idx-1, 1);
@@ -228,15 +255,22 @@ const remove_item = (guild_id, queue_index) => {
     return undefined;
 }
 
-// create resource from our test audio
-const create_test_resource = () => {
-    return createAudioResource('77e8ac9116e2c05d2e4eaba5f60dc3ac.mp3');
-}
 // create resource from WebmOpus streams
 const create_audio_resource = (stream) => {
     return createAudioResource(stream, { inputType: StreamType.WebmOpus });
 }
 
 
-export { init, handle, play_in_channel, create_audio_item, create_audio_resource, create_test_resource }
+export { 
+    init, 
+    handle, 
+    play_in_channel, 
+    create_audio_item, 
+    create_audio_resource,
+    stop_playing,
+    clear_queue,
+    get_queue,
+    skip_audio,
+    remove_item
+ }
 

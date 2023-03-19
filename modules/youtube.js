@@ -7,14 +7,28 @@ import youtubedl from 'youtube-dl-exec';
 const stream_audio = (url) => {
     console.log(`streaming from ${url}`);
     // youtubedl.create("/path/to/yt-dlp").exec()
+    
+    // this is downloading the whole video and piping it in one massive chunk
+    //  for god knows shwat reason this functionality changed
     const stream = youtubedl.exec(url, {
         output: '-', // pipe to stdout
         quiet: true, // quiet
         format: '251', // some unknown format - works so don't change
-        limitRate: '100K', // 100K bitrate
+        // we remove limit rate to download fast :)
+        // limitRate: '100K', // 100K bitrate
     }, { stdio: ['ignore', 'pipe', 'ignore'] }) // stdin, stdout, stderr ?
 
+    console.log(`running yt-dlp with: ${stream.spawnargs.join(" ")}`);
+
+    stream.on('close', (code) => {
+        console.log("yt-dlp exited with " + code);
+    });
+    stream.stdout.on('data',(chunk) => {
+        console.log(chunk);
+    });
+
     return stream.stdout;
+    
 }
 
 const find = async (query) => {
@@ -27,10 +41,14 @@ const find = async (query) => {
     };
 }
 const find_video = async(query) => {
-    return (await search(query)).videos[0]
+    const result = await yts(query);
+    //console.log(result);
+    return result.videos[0];
 }
 const find_playlist = async(query) => {
-    return (await search(query)).playlists[0]
+    const result = await yts(query);
+    //console.log(result);
+    return result.playlists[0]
 }
 
 const get_playlist_videos = async(playlist) => {
