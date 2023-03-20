@@ -320,24 +320,26 @@ const query = async (
         if (actions.length > 0) {
             // There is an action to run
             const [_, action, actionInput] = actions[0];
-
-            if (known_actions[action] === undefined) {
-                gpt.forget(memory_block);
-                throw new Error(`Unknown action: ${action}: ${actionInput}`);
+            
+            if (known_actions[action.toLowerCase()] === undefined) {
+                next_prompt = `Observation: ${action} is not a valid action.`
+            } else { 
+                let observation = await known_actions[action.toLowerCase()](actionInput, source_message)
+                next_prompt = `Observation: ${observation}`
             }
-            let observation = await known_actions[action](actionInput, source_message)
-            next_prompt = `Observation: ${observation}`
         } else {
             let idx = result.indexOf("Answer: ");
             gpt.forget(memory_block);
             if(idx > -1)
                 return result.substring(result.indexOf("Answer: ")).replace("Answer: ","");
-            else 
-                return result
+            else
+            { 
+                next_prompt = `Observation: You did not provide a valid Action or Answer.`
+            }
         }
     }
     gpt.forget(memory_block);
-    return "UH OH"
+    return "My brain got stuck. Sorry I could not provide assistance."
 }
 
 
