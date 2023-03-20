@@ -322,7 +322,7 @@ const query = async (
             const [_, action, actionInput] = actions[0];
             
             if (known_actions[action.toLowerCase()] === undefined) {
-                next_prompt = `Observation: ${action} is not a valid action.`
+                next_prompt = `Observation: Your response action '${action}' is not a valid action.`
             } else { 
                 let observation = await known_actions[action.toLowerCase()](actionInput, source_message)
                 next_prompt = `Observation: ${observation}`
@@ -333,7 +333,7 @@ const query = async (
                 gpt.forget(memory_block);
                 return result.substring(result.indexOf("Answer: ")).replace("Answer: ","");
             } else { 
-                next_prompt = `Observation: You did not provide a valid Action or Answer.`
+                next_prompt = `Observation: Your response is not formatted as an Action or Answer.`
             }
         }
     }
