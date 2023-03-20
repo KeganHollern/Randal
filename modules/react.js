@@ -329,11 +329,10 @@ const query = async (
             }
         } else {
             let idx = result.indexOf("Answer: ");
-            gpt.forget(memory_block);
-            if(idx > -1)
+            if(idx > -1) {
+                gpt.forget(memory_block);
                 return result.substring(result.indexOf("Answer: ")).replace("Answer: ","");
-            else
-            { 
+            } else { 
                 next_prompt = `Observation: You did not provide a valid Action or Answer.`
             }
         }
