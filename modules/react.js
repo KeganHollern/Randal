@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import * as dalle from './dalle.js'
 import fs from 'fs'
 import * as discord from './discord.js'
+import * as google from './google.js'
 
 
 
@@ -24,6 +25,10 @@ Your available actions are:
 wikipedia:
 e.g. wikipedia: Django
 Returns a summary from searching Wikipedia.
+
+google:
+e.g. google: Christmas
+Returns a summary of a specific Person, Place, Event, Product, or other Thing.
 
 play:
 e.g. play: https://www.youtube.com/watch?v=dQw4w9WgXcQ
@@ -282,6 +287,14 @@ const known_actions = {
             return "Could not find any verses."
         }
         return data.data.verses.map(verse => `${verse.reference}: ${verse.text}"`).join("\n");
+    },
+    "google": async (q) => {
+        // using SerpApi (expensive) because might as well fug it
+        const res = await google.query(q);
+        if(res == "") {
+            return "No search result."
+        }
+        return res;
     }
 }
 
@@ -333,7 +346,7 @@ const query = async (
                 gpt.forget(memory_block);
                 return result.substring(result.indexOf("Answer: ")).replace("Answer: ","");
             } else { 
-                next_prompt = `Observation: Your response is not formatted as an Action or Answer.`
+                next_prompt = `Observation: Your response is not formatted as an Action or Answer. Reformat your response as an Action or Answer.`
             }
         }
     }
