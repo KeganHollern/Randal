@@ -300,11 +300,30 @@ const known_actions = {
 }
 
 
+/*
+TODO: rework query so an arbitrary "context" object is fed in with the following definition:
+
+{
+    context: () => { return "Contextual information for the query"; };
+    actionData: {} // arbitrary data we feed into actions as their second argument
+}
+
+With this we can generate the setup message arbitrarily to provide the bot context of things
+like:
+- chat history
+- chat participants
+- time of day
+
+As well, we can pass arbitrary data necessary for actions, such as discord interaction actions
+
+*/
+
+
 const query = async (
     question, // user input
     source_message, // discord source message for action use
     history_block, // previous chat history for context
-    max_turns = 5 // max iterations for thoughts
+    max_turns = 7 // max iterations for thoughts
 ) => {
     // we generate a unique memory block for each query
     //  we clone the chat history first
