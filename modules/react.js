@@ -290,7 +290,9 @@ const known_actions = {
         return data.data.verses.map(verse => `${verse.reference}: ${verse.text}"`).join("\n");
     },
     "google": async (q) => {
-        // using SerpApi (expensive) because might as well fug it
+        // uses google knowledge query
+        //  in future may want to just scrape google to get better results idk
+        //  SerpApi is a thing too but way too expensive.
         const res = await google.query(q);
         if(res == "") {
             return "No search result."
