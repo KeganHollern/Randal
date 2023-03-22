@@ -5,7 +5,6 @@ Example chat:
 
 ![image](https://user-images.githubusercontent.com/15372623/226472964-f6283f40-01bf-473d-bc9c-3ea2b634f2a4.png)
 
-
 ## ReAct
 Please read the following paper to learn more on reasoning and action in LLMs like GPT-3.5-Turbo: [https://arxiv.org/abs/2210.03629](https://arxiv.org/abs/2210.03629)
 
