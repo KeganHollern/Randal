@@ -3,8 +3,8 @@ Randal is a ChatGPT powered Discord bot which implements ReAct techniques for co
 
 ## Samples
 
-DALL-E | WAIFU | CONTEXT 
-:-----:|:-----:|:-------:
+DALL-E | WAIFU | WEB SEARCH 
+:-----:|:-----:|:----------:
 ![image](https://user-images.githubusercontent.com/15372623/226472964-f6283f40-01bf-473d-bc9c-3ea2b634f2a4.png) | ![image](https://user-images.githubusercontent.com/15372623/227073663-2591d3e7-79a8-4b34-b322-1340eabbf0fe.png) | ![image](https://user-images.githubusercontent.com/15372623/227073697-7a6666c2-7f93-401c-bce9-f58ef4c2f180.png)
 
 ## ReAct
