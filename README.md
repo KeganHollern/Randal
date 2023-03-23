@@ -1,5 +1,5 @@
 # Randal
-Randal is a ChatGPT powered Discord bot which implements ReAct techniques for complex action and response.
+Randal is a ChatGPT powered Discord bot which implements ReAct techniques for complex action and response. This enables him to act as a personal assistant, a search engine, and more.
 
 ## Samples
 
