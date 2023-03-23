@@ -52,3 +52,5 @@ the song on youtube.
 The bot can sometimes generate its own actions and observations to break free.
 
 MyAnimeList implementation is not particularly good. Needs some overhauls.
+
+Randal will stop running actions when he thinks he knows the correct answer to an action request.

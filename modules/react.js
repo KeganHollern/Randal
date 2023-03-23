@@ -43,7 +43,7 @@ Searches youtube for videos.
 
 dalle:
 e.g. dalle: A sketch of a smiling dog
-Generate an image using DALL-E and send it to the user.
+Generate (or create) an image using DALL-E and send it to the user.
 
 stop:
 e.g. stop: playing music
@@ -74,9 +74,10 @@ e.g. waifu: get image
 Acquires a random URL to an image of an Anime girl (waifu).
 
 Always look things up on DuckDuckGo if you have the opportunity to do so.
-If there is no action, do not reply with an observation, Answer as an assistant.
 If you need more context, you can Answer by asking the user for more information.
 If you need to run multiple actions, you can have a Thought, Action, PAUSE in place of an Answer.
+
+Do not write your own Observations.
 
 Example session:
 
@@ -207,7 +208,7 @@ const known_actions = {
                     console.error(error); 
             });
 
-            return `Action complete.`;
+            return `Action complete. Image generated.`;
         } catch(err) {
             return `Action failed. Reason: ${err}`
         }
