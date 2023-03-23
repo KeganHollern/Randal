@@ -341,6 +341,7 @@ const query = async (
     const memory_block = uuidv4();
     gpt.init(memory_block, setup_message, 0.7);
 
+    //TODO: inject `entry.sender` if non-block? 
     gpt.push_message(memory_block,{
         role: "assistant",
         content: `Observation: chat history:\n${gpt.get_memory(history_block).slice(-20).map((entry) => `${entry.role}: ${entry.content}`).join("\n")}`
@@ -360,6 +361,15 @@ const query = async (
         if (actions.length > 0) {
             // There is an action to run
             const [_, action, actionInput] = actions[0];
+            /*
+            TODO:
+            Kinda scuffed but to improve bot retention we may want to inject the action details into the "chat history"? 
+            gpt.push_message(chat_memory, {
+                role: "assistant",
+                name: sender,
+                content: `Running: Action: ${action}: ${actionInput}`
+            });
+            */
             
             if (known_actions[action.toLowerCase()] === undefined) {
                 next_prompt = `Observation: Your response action '${action}' is not a valid action.`
