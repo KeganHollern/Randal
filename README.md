@@ -4,7 +4,7 @@ Randal is a ChatGPT powered Discord bot which implements ReAct techniques for co
 Example chat:
 DALL-E | WAIFU
 :-----:|:-----:
-![image](https://user-images.githubusercontent.com/15372623/226472964-f6283f40-01bf-473d-bc9c-3ea2b634f2a4.png) | ![image](#)
+![image](https://user-images.githubusercontent.com/15372623/226472964-f6283f40-01bf-473d-bc9c-3ea2b634f2a4.png) | ![image](https://user-images.githubusercontent.com/15372623/227073329-8e9f36c2-570d-4da6-ac5f-ef3e18c6bd3c.png)
 
 ## ReAct
 Please read the following paper to learn more on reasoning and action in LLMs like GPT-3.5-Turbo: [https://arxiv.org/abs/2210.03629](https://arxiv.org/abs/2210.03629)
