@@ -2,8 +2,9 @@
 Randal is a ChatGPT powered Discord bot which implements ReAct techniques for complex action and response.
 
 Example chat:
-
-![image](https://user-images.githubusercontent.com/15372623/226472964-f6283f40-01bf-473d-bc9c-3ea2b634f2a4.png)
+DALL-E | WAIFU
+:-----:|:-----:
+![image](https://user-images.githubusercontent.com/15372623/226472964-f6283f40-01bf-473d-bc9c-3ea2b634f2a4.png) | ![image](#)
 
 ## ReAct
 Please read the following paper to learn more on reasoning and action in LLMs like GPT-3.5-Turbo: [https://arxiv.org/abs/2210.03629](https://arxiv.org/abs/2210.03629)
@@ -47,7 +48,6 @@ The bot does not always search for information before generating an action. Due 
 playing music from youtube sometimes requires explicitly telling the bot to search for
 the song on youtube.
 
-The bot interprets the observation as user feedback. This leads to the bot thanking 
-the user for providing information on an action which was performed.
+The bot can sometimes generate its own actions and observations to break free.
 
 MyAnimeList implementation is not particularly good. Needs some overhauls.
