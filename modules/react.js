@@ -8,6 +8,7 @@ import * as dalle from './dalle.js'
 import fs from 'fs'
 import * as discord from './discord.js'
 import * as google from './google.js'
+import * as duckduckgo from './ddg.js'
 
 
 
@@ -23,13 +24,13 @@ Do not write your own Observations.
 
 Your available actions are:
 
-wikipedia:
-e.g. wikipedia: Django
-Returns a summary from searching Wikipedia.
-
 google:
 e.g. google: Christmas
 Returns a summary of a specific Person, Place, Event, Product, or other Thing.
+
+duckduckgo:
+e.g. duckduckgo: What is the capital of France?
+Returns the top web search results for a query.
 
 play:
 e.g. play: https://www.youtube.com/watch?v=dQw4w9WgXcQ
@@ -68,25 +69,29 @@ bible:
 e.g. bible: sloth
 Returns verses from the bible relating to the search query.
 
-Always look things up on Wikipedia or Google if you have the opportunity to do so.
+waifu:
+e.g. waifu: get image
+Acquires a random URL to an image of an Anime girl (waifu).
+
+Always look things up on DuckDuckGo if you have the opportunity to do so.
 If there is no action, do not reply with an observation, Answer as an assistant.
 If you need more context, you can Answer by asking the user for more information.
 If you need to run multiple actions, you can have a Thought, Action, PAUSE in place of an Answer.
 
 Example session:
 
-Question: What is the capital of France?
-Thought: I should look up France on Wikipedia
-Action: wikipedia: France
+Question: How much do homes cost in the bay?
+Thought: I should look up the average home value in the Bay Area
+Action: duckduckgo: Average home price in the Bay Area.
 PAUSE
 
 You will be called again with this:
 
-Observation: France is a country. The capital is Paris.
+Observation: 1. Typical home values in the central Bay Area have dropped by almost $110,000 from July 2022 to January 2023, to a still-considerable $1.1 million.
 
 You then output:
 
-Answer: The capital of France is Paris.
+Answer: The average home in the Bay Area costs $1.1 million as of January 2023.
 `;
 
 
@@ -94,35 +99,19 @@ const actionRe = new RegExp('^Action: (\\w+): (.*)$');
 const answerRe = new RegExp('^Answer: (.*)$');
 
 const known_actions = {
-    "wikipedia": async (q) => {
-        console.log(`\tSearching wikipedia for: ${q}`);
+    "waifu": async (q) => {
         const response = await fetch(
-            "https://en.wikipedia.org/w/api.php?" +
-            new URLSearchParams({
-                "action": "query",
-                "list": "search",
-                "srsearch": q,
-                "format": "json"
-            }), {
+            "https://api.waifu.im/search",
+            { 
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                mode: "cors",
-                cache: "no-cache",
-                credentials: "same-origin",
-                redirect: "follow",
-                referrerPolicy: "no-referrer",
-                body: null,
-                signal: null,
-                keepalive: false,
-                referrer: "",
-                integrity: "",
-                destination: "",
-            });
-
+            }
+        );
         const data = await response.json();
-        return data.query.search[0].snippet;
+        source_message.channel.send(data.images[0].url)
+        return "You sent a waifu image to the user.";
     },
     "youtube": async (q) => {
         console.log(`\tSearching youtube for: ${q}`);
@@ -229,7 +218,7 @@ const known_actions = {
             "https://api.jikan.moe/v4/anime?" +
             new URLSearchParams({
                 "q": q,
-                "limit": "1",
+                "limit": "2",
             }), {
                 method: "GET",
                 headers: {
@@ -252,8 +241,12 @@ const known_actions = {
         if(data.data.length === 0) {
             return "Could not find that anime."
         }
-        const anime_data = data.data[0];
-        return `Title: ${anime_data.title_english}\nURL: ${anime_data.url}\nEpisodes: ${anime_data.episodes}\nStatus: ${anime_data.status}\nScore: ${anime_data.score}/10\nSynopsis: ${anime_data.synopsis}`;
+        let content = "";
+        data.data.forEach((element, index) => {
+            const anime_data = element;
+            content += `${index+1}. Title: ${anime_data.title_english}\nURL: ${anime_data.url}\nEpisodes: ${anime_data.episodes}\nStatus: ${anime_data.status}\nScore: ${anime_data.score}/10\nSynopsis: ${anime_data.synopsis}\n`;
+        });
+        return content;
     },
     "bible": async (q) => {
         console.log(`\tSearching Bible for: ${q}`);
@@ -294,6 +287,13 @@ const known_actions = {
         //  in future may want to just scrape google to get better results idk
         //  SerpApi is a thing too but way too expensive.
         const res = await google.query(q);
+        if(res == "") {
+            return "No search result."
+        }
+        return res;
+    },
+    "duckduckgo": async (q) => {
+        const res = await duckduckgo.search(q);
         if(res == "") {
             return "No search result."
         }

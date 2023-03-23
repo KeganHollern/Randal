@@ -10,7 +10,7 @@ Please read the following paper to learn more on reasoning and action in LLMs li
 
 ## Actions
 - Google Knowledge Graph Search
-- Wikipedia Search
+- DuckDuckGo Web Search
 - Bible Search
 - MyAnimeList Search
 - Youtube Search
