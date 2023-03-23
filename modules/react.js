@@ -99,7 +99,7 @@ const actionRe = new RegExp('^Action: (\\w+): (.*)$');
 const answerRe = new RegExp('^Answer: (.*)$');
 
 const known_actions = {
-    "waifu": async (q) => {
+    "waifu": async (q, source_message) => {
         const response = await fetch(
             "https://api.waifu.im/search",
             { 
@@ -111,7 +111,7 @@ const known_actions = {
         );
         const data = await response.json();
         source_message.channel.send(data.images[0].url)
-        return "You sent a waifu image to the user.";
+        return "Action complete.";
     },
     "youtube": async (q) => {
         console.log(`\tSearching youtube for: ${q}`);
@@ -127,11 +127,11 @@ const known_actions = {
     "play": async (q, source_message) => {
         const guild = source_message.guild;
         if(guild === undefined) {
-            return "You could not play audio because the user is talking to us in a Direct Message. The user does not know yet."
+            return "Action failed. Reason: The user is chatting in a Direct Message."
         }
         const voice_channel = source_message.member?.voice?.channel;
         if(voice_channel === undefined) {
-            return "You could not play audio because the user is not in a voice channel. The user does not know yet."
+            return "Action failed. Reason: The user is not in a voice chat."
         }
 
         console.log(`\tPlaying: ${q}`);
@@ -141,7 +141,7 @@ const known_actions = {
         
         const stream = youtube.stream_audio(url);
         if(stream === undefined) {
-            return "You failed to start streaming the video. Something is wrong. The user does not know yet."
+            return "Action failed. Reason: you could not stream that URL."
         }
         //console.log(stream);
         const resource = discord.create_audio_resource(stream);
@@ -151,47 +151,47 @@ const known_actions = {
 
         const result = await discord.play_in_channel(voice_channel, item);
         if(result) {
-            return `You have started playing ${title} @ ${url} for the user. The user does not know yet.`
+            return `Action complete. Now playing ${title} @ ${url}.`
         } else {
-            return `You have have added ${title} @ ${url} to the queue for the user. The user does not know yet.`
+            return `Action complete. Enqueued ${title} @ ${url}.`
         }
     },
     "videos": async (q, source_message) => {
         console.log(`\tVideos: ${q}`);
         // TODO 
-        return "action not implemented";
+        return "Action failed. Reason: action not implemented";
     },
     "stop": async (q, source_message) => {
         const guild = source_message.guild;
         if(guild === undefined) {
-            return "You could not stop playing music because the user is talking to us in a Direct Message. The user does not know yet."
+            return "Action failed. Reason: The user is chatting in a Direct Message."
         }
         const voice_channel = source_message.member?.voice?.channel;
         if(voice_channel === undefined) {
-            return "You could not stop playing music because the user is not in a voice channel. The user does not know yet."
+            return "Action failed. Reason: The user is not in a voice chat."
         }
 
         console.log(`\tStop: ${q}`);
 
         if(!discord.stop_playing(guild.id))
-            return "You could not stop playing music because no music is being played. The user does not know yet."
+            return "YAction failed. Reason: No music is being played."
 
-        return "You have stopped the music from playing. The user does not know yet.";
+        return "Action complete.";
     },
     "skip": async (q) => {
         console.log(`\tSkip: ${q}`);
         // TODO 
-        return "action not implemented";
+        return "Action failed. Reason: action not implemented";
     },
     "song": async (q) => {
         console.log(`\tSong: ${q}`);
         // TODO 
-        return "action not implemented";
+        return "Action failed. Reason: action not implemented";
     },
     "queue": async (q) => {
         console.log(`\tQueue: ${q}`);
         // TODO 
-        return "action not implemented";
+        return "Action failed. Reason: action not implemented";
     },
     "dalle": async (q, source_message) => {
         try {
@@ -207,9 +207,9 @@ const known_actions = {
                     console.error(error); 
             });
 
-            return `You have sent a generated image to the user. The user does not know yet.`;
+            return `Action complete.`;
         } catch(err) {
-            return `Image creation failed: ${err}`
+            return `Action failed. Reason: ${err}`
         }
     },
     "anime": async (q) => {
@@ -321,6 +321,10 @@ As well, we can pass arbitrary data necessary for actions, such as discord inter
 */
 
 
+const sleep = (time) => {
+    return new Promise((resolve) => setTimeout(resolve, time))
+  }
+  
 const query = async (
     question, // user input
     source_message, // discord source message for action use
@@ -371,6 +375,7 @@ const query = async (
                 next_prompt = `Observation: Your response is not formatted as an Action or Answer. Reformat your response as an Action or Answer.`
             }
         }
+        await sleep(100);
     }
     gpt.forget(memory_block);
     return "My brain got stuck. Sorry I could not provide assistance."

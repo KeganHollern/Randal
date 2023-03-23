@@ -48,13 +48,28 @@ const message = async (memory_block, sender, message) => {
 
     //console.log(block.history);
 
-    console.log("\tQuerying OpenAi...");
-    const response = await openai.createChatCompletion({
-        model: model,
-        temperature: block.temperature,
-        messages: block.history,
-    });
+    let response = {status: 502, statusText: "???"};
+    let tries = 0;
+    while(response.status !== 200 && tries < 3) {
+        tries++;
 
+        console.log("\tQuerying OpenAi...");
+        try {
+            response = await openai.createChatCompletion({
+                model: model,
+                temperature: block.temperature,
+                messages: block.history,
+            }, {
+                timeout: 5000
+            });
+        } catch(err) {
+            response.status = 502;
+            response.statusText = err.message;
+        }
+        if(response.status !== 200) {
+            console.warn(`failed: ${response.statusText}`);
+        }
+    }
     if(response.status != 200) {
         throw new Error(response.statusText);
     }
