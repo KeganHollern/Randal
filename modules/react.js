@@ -21,6 +21,7 @@ Use Thought to describe your thoughts about the question or command you have bee
 Use Action to run one of the actions available to you - then return PAUSE.
 Stop all text generation after PAUSE.
 
+Always include your thoughts.
 If no Action is necessary, return an Answer.
 
 Observations the result of your action.
@@ -345,7 +346,7 @@ const query = async (
     //  we then feed the question prompt to begin ReActing
     //  once complete we delete the allocated memory block as we'l never need it again
 
-    const context = `Context: chat history:\n${gpt.get_memory(history_block).slice(1).slice(-20).map((entry) => {
+    const context = `Context: chat history:\n${gpt.get_memory(history_block).slice(1).slice(-10).map((entry) => {
         if(entry.role == "assistant") {
             return `Randal: ${entry.content}`;
         }
@@ -399,7 +400,7 @@ const query = async (
                 gpt.forget(memory_block);
                 return result.substring(result.indexOf("Answer: ")).replace("Answer: ","");
             } else { 
-                next_prompt = `Observation: Your response is not formatted as an Action or Answer. Reformat your response as an Action or Answer.`
+                next_prompt = `Observation: Your response was malformated. Remember to always respond with Answer or Thought-Action. Do not appologize, simply fix your mistake.`
             }
         }
         await sleep(100);
