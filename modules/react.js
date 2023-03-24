@@ -4,7 +4,7 @@
 import * as gpt from './gpt.js'
 import * as youtube from './youtube.js'
 import { v4 as uuidv4 } from "uuid";
-import * as dalle from './dalle.js'
+import * as dalle from './stablediff.js'
 import fs from 'fs'
 import * as discord from './discord.js'
 import * as google from './google.js'

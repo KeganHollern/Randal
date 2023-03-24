@@ -17,13 +17,15 @@ Please read the following paper to learn more on reasoning and action in LLMs li
 - MyAnimeList Search
 - Youtube Search
 - Music Player
-- Dall-E Image Generation
+- Stable Diffusion Image Generation
+- Dall-E Image Generation (disabled)
 
 ## Requirements
 1. [OpenAI](https://platform.openai.com/) API Key
 2. [Discord Bot](https://discord.com/developers/applications) API Key
 3. [API.Bible](https://scripture.api.bible/) Key
 4. [Google](https://console.cloud.google.com/) API Key
+5. [DreamStudio](https://beta.dreamstudio.ai/) API Key
 5. Latest NodeJS
 
 ## Using
