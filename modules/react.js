@@ -346,7 +346,7 @@ const query = async (
     //  we then feed the question prompt to begin ReActing
     //  once complete we delete the allocated memory block as we'l never need it again
 
-    const context = `Context: chat history:\n${gpt.get_memory(history_block).slice(1).slice(-10).map((entry) => {
+    const context = `Context: conversation:\n${gpt.get_memory(history_block).slice(1).slice(-10).map((entry) => {
         if(entry.role == "assistant") {
             return `Randal: ${entry.content}`;
         }
