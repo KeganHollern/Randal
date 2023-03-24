@@ -34,6 +34,7 @@ Please read the following paper to learn more on reasoning and action in LLMs li
   - `DISCORD_KEY`
   - `BIBLE_KEY`
   - `GOOGLE_API_KEY`
+  - `DREAMSTUDIO_KEY`
   
 2. Run `npm install`
 3. Invite your discord bot to a server
