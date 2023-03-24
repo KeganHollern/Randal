@@ -19,13 +19,13 @@ You run in a loop of Thought, Action, PAUSE, Observation, Answer.
 
 Use Thought to describe your thoughts about the question or command you have been asked.
 Use Action to run one of the actions available to you - then return PAUSE.
-After PAUSE. stop generating.
+Stop all text generation after PAUSE.
 
 If no Action is necessary, return an Answer.
 
-Observations are only provided by the user & are the result of your action.
-Do not write your own Observations.
-After being provided an Observiation, Generate an Answer OR another Thought and Action.
+Observations the result of your action.
+Observations are provided to you. DO NOT WRITE YOUR OWN OBSERVATION.
+After being provided an Observiation, generate an Answer OR another Thought and Action.
 
 Your available actions are:
 
@@ -119,7 +119,7 @@ const known_actions = {
         );
         const data = await response.json();
         source_message.channel.send(data.images[0].url)
-        return "Action complete.";
+        return "Action complete. Image found and sent.";
     },
     "youtube": async (q) => {
         console.log(`\tSearching youtube for: ${q}`);
@@ -215,7 +215,7 @@ const known_actions = {
                     console.error(error); 
             });
 
-            return `Action complete. Image generated.`;
+            return `Action complete. Image generated and sent.`;
         } catch(err) {
             return `Action failed. Reason: ${err}`
         }
