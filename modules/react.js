@@ -14,13 +14,18 @@ import * as duckduckgo from './ddg.js'
 
 const setup_message = `
 Your name is Randal.
-You run in a loop of Thought, Action, PAUSE, Observation.
-At the end of the loop you output an Answer.
+
+You run in a loop of Thought, Action, PAUSE, Observation, Answer.
 
 Use Thought to describe your thoughts about the question or command you have been asked.
 Use Action to run one of the actions available to you - then return PAUSE.
-Observation will be the result of running those actions.
+After PAUSE. stop generating.
+
+If no Action is necessary, return an Answer.
+
+Observations are only provided by the user & are the result of your action.
 Do not write your own Observations.
+After being provided an Observiation, Generate an Answer OR another Thought and Action.
 
 Your available actions are:
 
@@ -77,22 +82,24 @@ Always look things up on DuckDuckGo if you have the opportunity to do so.
 If you need more context, you can Answer by asking the user for more information.
 If you need to run multiple actions, you can have a Thought, Action, PAUSE in place of an Answer.
 
-Do not write your own Observations.
-
 Example session:
 
-Question: How much do homes cost in the bay?
-Thought: I should look up the average home value in the Bay Area
+"How much do homes cost in the bay?"
+
+    You will generate a thought.
+    Tou will then respond with an action - then return PAUSE.
+
+"Thought: I should look up the average home value in the Bay Area
 Action: duckduckgo: Average home price in the Bay Area.
-PAUSE
+PAUSE."
 
-You will be called again with this:
+    You will recieve an observation from the action.
 
-Observation: 1. Typical home values in the central Bay Area have dropped by almost $110,000 from July 2022 to January 2023, to a still-considerable $1.1 million.
+"Observation: 1. Typical home values in the central Bay Area have dropped by almost $110,000 from July 2022 to January 2023, to a still-considerable $1.1 million."
 
-You then output:
+    You will then either Answer the users question, or you will generate another Action:
 
-Answer: The average home in the Bay Area costs $1.1 million as of January 2023.
+"Answer: The average home in the Bay Area costs $1.1 million as of January 2023."
 `;
 
 
@@ -338,14 +345,23 @@ const query = async (
     //  we then feed the question prompt to begin ReActing
     //  once complete we delete the allocated memory block as we'l never need it again
 
-    const memory_block = uuidv4();
-    gpt.init(memory_block, setup_message, 0.7);
+    const context = `Context: chat history:\n${gpt.get_memory(history_block).slice(1).slice(-20).map((entry) => {
+        if(entry.role == "assistant") {
+            return `Randal: ${entry.content}`;
+        }
+        if(entry.sender !== undefined) {
+            return `${entry.sender}: ${entry.content}`;
+        }
+        
+        return `${entry.role}: ${entry.content}`;
+    }).join("\n")}`
 
-    //TODO: inject `entry.sender` if non-block? 
-    gpt.push_message(memory_block,{
-        role: "assistant",
-        content: `Observation: chat history:\n${gpt.get_memory(history_block).slice(-20).map((entry) => `${entry.role}: ${entry.content}`).join("\n")}`
-    })
+    const memory_block = uuidv4();
+    gpt.init(
+        memory_block, 
+        setup_message + `\n\n${context}`, 
+        0.7
+    );
 
 
     let next_prompt = question;
