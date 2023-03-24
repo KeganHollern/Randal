@@ -1,3 +1,8 @@
+/*
+    StableDiffusion APi
+
+    TODO: perhaps allow for custom - local (or remote) API usage for custom SD models?
+*/
 import fs from 'fs'
 import * as tmp from 'tmp'
 

@@ -1,3 +1,6 @@
+/*
+    DuckDuckGo web scraper
+*/
 import { JSDOM } from 'jsdom'
 import * as fs from 'fs'
 

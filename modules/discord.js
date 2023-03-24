@@ -1,3 +1,6 @@
+/*
+    Discord chat and audio wrapper
+*/
 import Discord from 'discord.js';
 import { 
     joinVoiceChannel, 

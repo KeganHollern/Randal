@@ -1,3 +1,9 @@
+/*
+    Google Knowledge Gragh Search
+
+    kinda dogshit - prefer ddg
+*/
+
 import {google} from 'googleapis'
 const kgsearch = google.kgsearch({
     version: "v1",
