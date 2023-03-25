@@ -90,7 +90,7 @@ discord.handle((message) => {
               
                 return chunks
             } 
-            const parts = chunkSubstr( response, 2000);
+            const parts = chunkSubstr( response.replace("Answer: ", ""), 2000);
             parts.forEach((msg) => {
                 channel.send(msg);
             });

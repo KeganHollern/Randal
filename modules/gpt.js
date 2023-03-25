@@ -64,7 +64,7 @@ const message = async (memory_block, sender, message) => {
                 temperature: block.temperature,
                 messages: block.history,
             }, {
-                timeout: 5000
+                timeout: 10000
             });
         } catch(err) {
             response.status = 502;

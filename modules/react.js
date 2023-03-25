@@ -4,7 +4,8 @@
 import * as gpt from './gpt.js'
 import * as youtube from './youtube.js'
 import { v4 as uuidv4 } from "uuid";
-import * as dalle from './stablediff.js'
+import * as stablediff from './stablediff.js'
+import * as dalle from './dalle.js'
 import fs from 'fs'
 import * as discord from './discord.js'
 import * as google from './google.js'
@@ -19,14 +20,19 @@ You run in a loop of Thought, Action, PAUSE, Observation, Answer.
 
 Use Thought to describe your thoughts about the question or command you have been asked.
 Use Action to run one of the actions available to you - then return PAUSE.
-Stop all text generation after PAUSE.
+IMPORTANT: Stop all text generation after PAUSE.
 
 Always include your thoughts.
-If no Action is necessary, return an Answer.
+Always include either an action OR an answer; never both.
 
 Observations the result of your action.
 Observations are provided to you. DO NOT WRITE YOUR OWN OBSERVATION.
-After being provided an Observiation, generate an Answer OR another Thought and Action.
+After being provided an Observiation, generate a Thought based on that observation followed by an Answer OR Action.
+
+If the message is not a question or command: have a Thought and Answer.
+Always structure your responses.
+
+----------------------------
 
 Your available actions are:
 
@@ -49,7 +55,11 @@ Searches youtube for videos.
 
 dalle:
 e.g. dalle: A sketch of a smiling dog
-Generate (or create) an image using DALL-E and send it to the user.
+Generate (or create) an image using DALL-E and send it to the user. This is a more generic image generator than Stable Diffusion.
+
+stablediff:
+e.g. stablediff: (photorealistic:1.4), (masterpiece, sidelighting, finely detailed beautiful eyes: 1.2), masterpiece*portrait, realistic, 3d face, glowing eyes, shiny hair, lustrous skin, solo, embarassed, (midriff)
+Generate (or create) an image using Stable Diffusion and send it to the user. Best used as a comma delimited list of tags.
 
 stop:
 e.g. stop: playing music
@@ -79,16 +89,20 @@ waifu:
 e.g. waifu: get image
 Acquires a random URL to an image of an Anime girl (waifu).
 
+----------------------------
+
 Always look things up on DuckDuckGo if you have the opportunity to do so.
 If you need more context, you can Answer by asking the user for more information.
-If you need to run multiple actions, you can have a Thought, Action, PAUSE in place of an Answer.
+If you need to run multiple actions, you can Thought, Action, PAUSE.
+
+----------------------------
 
 Example session:
 
 "How much do homes cost in the bay?"
 
     You will generate a thought.
-    Tou will then respond with an action - then return PAUSE.
+    You will then respond with an action - then return PAUSE.
 
 "Thought: I should look up the average home value in the Bay Area
 Action: duckduckgo: Average home price in the Bay Area.
@@ -100,7 +114,24 @@ PAUSE."
 
     You will then either Answer the users question, or you will generate another Action:
 
-"Answer: The average home in the Bay Area costs $1.1 million as of January 2023."
+"Thought: I now know the average home in the Bay Area costs $1.1 million as of January 2023. 
+Answer: The average home in the Bay Area costs $1.1 million as of January 2023."
+
+----------------------------
+
+Another example session:
+
+"Can you write me a Hello World in JavaScript using NodeJS?"
+
+    You will generate a thought.
+    You can do this without an action - so you will immediately answer.
+
+"Thought: I can write some javascript to print Hello World in console.
+Answer: Here is a Hello World app using NodeJS:
+
+\`\`\`javascript
+console.log("Hello World!");
+\`\`\`"
 `;
 
 
@@ -205,6 +236,27 @@ const known_actions = {
     "dalle": async (q, source_message) => {
         try {
             const image_file = await dalle.generate(q);
+
+            // TODO: upload to discord chat
+            await source_message.channel.send({
+                files: [image_file]
+            });
+
+            fs.unlink(image_file, (error) => {
+                if(error !== null)
+                    console.error(error); 
+            });
+
+            return `Action complete. Image generated and sent.`;
+        } catch(err) {
+            return `Action failed. Reason: ${err}`
+        }
+    },
+    "stablediff": async (q, source_message) => {
+        try {
+            const react = await source_message.react('🔃'); // let the user know we're processing
+            const image_file = await stablediff.generate_automatic1111(q);
+            react.remove();
 
             // TODO: upload to discord chat
             await source_message.channel.send({
@@ -398,9 +450,12 @@ const query = async (
             let idx = result.indexOf("Answer: ");
             if(idx > -1) {
                 gpt.forget(memory_block);
-                return result.substring(result.indexOf("Answer: ")).replace("Answer: ","");
+                return result.substring(result.indexOf("Answer: "))//.replace("Answer: ","");
             } else { 
-                next_prompt = `Observation: Your response was malformated. Remember to always respond with Answer or Thought-Action. Do not appologize, simply fix your mistake.`
+                next_prompt = `Observation: Your response was not in the format of an Answer or Action.
+                Remember to always respond as an Answer or Action. 
+                Do not appologize. 
+                Reply to the original message again in the correct format.`
             }
         }
         await sleep(100);
