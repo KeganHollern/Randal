@@ -8,7 +8,8 @@ DALL-E | WAIFU | WEB SEARCH
 ![image](https://user-images.githubusercontent.com/15372623/226472964-f6283f40-01bf-473d-bc9c-3ea2b634f2a4.png) | ![image](https://user-images.githubusercontent.com/15372623/227073663-2591d3e7-79a8-4b34-b322-1340eabbf0fe.png) | ![image](https://user-images.githubusercontent.com/15372623/227073697-7a6666c2-7f93-401c-bce9-f58ef4c2f180.png)
 
 ## ReAct
-Please read the following paper to learn more on reasoning and action in LLMs like GPT-3.5-Turbo: [https://arxiv.org/abs/2210.03629](https://arxiv.org/abs/2210.03629)
+Please read the following paper to learn more on reasoning and action 
+in LLMs like GPT-3.5-Turbo: [https://arxiv.org/abs/2210.03629](https://arxiv.org/abs/2210.03629)
 
 ## Actions
 - Google Knowledge Graph Search
@@ -17,8 +18,8 @@ Please read the following paper to learn more on reasoning and action in LLMs li
 - MyAnimeList Search
 - Youtube Search
 - Music Player
-- Stable Diffusion Image Generation
-- Dall-E Image Generation (disabled)
+- Stable Diffusion Image Generation (API or Local)
+- Dall-E Image Generation
 
 ## Requirements
 1. [OpenAI](https://platform.openai.com/) API Key
@@ -26,7 +27,8 @@ Please read the following paper to learn more on reasoning and action in LLMs li
 3. [API.Bible](https://scripture.api.bible/) Key
 4. [Google](https://console.cloud.google.com/) API Key
 5. [DreamStudio](https://beta.dreamstudio.ai/) API Key
-5. Latest NodeJS
+6. [StableDiffusion WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) running locally.
+7. Latest NodeJS
 
 ## Using
 1. Add your API keys as environment variables:
@@ -42,9 +44,8 @@ Please read the following paper to learn more on reasoning and action in LLMs li
 
 ## Known limitations
 
-Sometimes the bot will "hallucinate" it's own chat history and run arbitrary actions. 
-Because of this, I **highly** recommend you do not introduce any arbitrary execution, 
-such as with `eval()`. 
+I have not added a configuration file for actions/APIs. May rework into a plugin-style system
+like OpenAI is doing with web ChatGPT.
 
 The bot needs restarted when invited to a new discord, otherwise playing music will not function.
 
@@ -53,7 +54,11 @@ playing music from youtube sometimes requires explicitly telling the bot to sear
 the song on youtube.
 
 The bot can sometimes generate its own actions and observations to break free.
+Because of this, I **highly** recommend you do not introduce any arbitrary execution, 
+such as with `eval()`. 
 
 MyAnimeList implementation is not particularly good. Needs some overhauls.
 
-Randal will stop running actions when he thinks he knows the correct answer to an action request.
+Bot struggles to format his responses properly. Keeps breaking his guardrails.
+
+OpenAI content policies block most NSFW image generation for local SD models.
