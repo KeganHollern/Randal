@@ -17,7 +17,7 @@ discord.handle((message) => {
     const channel =  message.channel;
     const guild = message.guild;
     const content = message.content;
-    const sender = message.author.username;
+    const sender = message.author.id;
 
     // rate limit messaging per user
     let last_msg = Rates.get(message.author.id);
@@ -31,7 +31,7 @@ discord.handle((message) => {
     }
     
 
-    console.log("new message from " + sender);
+    console.log("new message from " + message.author.username);
     if(message.author.id == '414286316109430794') {
         message.reply('fuck you');
         return
@@ -60,7 +60,6 @@ discord.handle((message) => {
         return;
     }
 
-    
     
 
     react.query(

@@ -43,6 +43,8 @@ client.on('ready', () => {
 client.on('messageCreate', message => {
     if (message.author.bot) return false;
 
+    
+
     // DMs
     if(message.channel.type == Discord.ChannelType.DM) {
         process_message(message);

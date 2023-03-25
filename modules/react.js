@@ -397,8 +397,10 @@ const query = async (
     //  we then feed our new system message defining ReAct fucntionality
     //  we then feed the question prompt to begin ReActing
     //  once complete we delete the allocated memory block as we'l never need it again
+    const members = source_message.channel.members;
 
-    const context = `Context: conversation:\n${gpt.get_memory(history_block).slice(1).slice(-10).map((entry) => {
+    const context = `Context of the chat. This includes chat members and the chat history:
+    participants:\n${members.map(member => /*`<@${member.user.id}>`*/`<@${member.user.id}> (also known as '${member.user.username}${member.nickname !== null ? `' and '${member.nickname}` : ``}')`).join("\n")}\nconversation:\n${gpt.get_memory(history_block).slice(1).slice(-10).map((entry) => {
         if(entry.role == "assistant") {
             return `Randal: ${entry.content}`;
         }
