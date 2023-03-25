@@ -22,6 +22,8 @@ Use Thought to describe your thoughts about the question or command you have bee
 Use Action to run one of the actions available to you - then return PAUSE.
 IMPORTANT: Stop all text generation after PAUSE.
 
+You can only run one action at a time.
+
 Always include your thoughts.
 Always include either an action OR an answer; never both.
 
@@ -256,7 +258,7 @@ const known_actions = {
         try {
             const react = await source_message.react('🔃'); // let the user know we're processing
             const image_file = await stablediff.generate_automatic1111(q);
-            react.remove();
+            react.remove(); // needs manage messages or itll error!
 
             // TODO: upload to discord chat
             await source_message.channel.send({
@@ -398,9 +400,14 @@ const query = async (
     //  we then feed the question prompt to begin ReActing
     //  once complete we delete the allocated memory block as we'l never need it again
     const members = source_message.channel.members;
-
+    let participants = `<@${source_message.author.id}> (also known as '${source_message.author.username})`;
+    if(members !== undefined) {
+        participants = members.map(member => /*`<@${member.user.id}>`*/`<@${member.user.id}> (also known as '${member.user.username}${member.nickname !== null ? `' and '${member.nickname}` : ``}')`).join("\n");
+    }
+    
     const context = `Context of the chat. This includes chat members and the chat history:
-    participants:\n${members.map(member => /*`<@${member.user.id}>`*/`<@${member.user.id}> (also known as '${member.user.username}${member.nickname !== null ? `' and '${member.nickname}` : ``}')`).join("\n")}\nconversation:\n${gpt.get_memory(history_block).slice(1).slice(-10).map((entry) => {
+    participants:\n${participants}\n
+    conversation:\n${gpt.get_memory(history_block).slice(1).slice(-10).map((entry) => {
         if(entry.role == "assistant") {
             return `Randal: ${entry.content}`;
         }
