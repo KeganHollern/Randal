@@ -25,7 +25,6 @@ in LLMs like GPT-3.5-Turbo: [https://arxiv.org/abs/2210.03629](https://arxiv.org
 1. [OpenAI](https://platform.openai.com/) API Key
 2. [Discord Bot](https://discord.com/developers/applications) API Key
 3. [API.Bible](https://scripture.api.bible/) Key
-4. [Google](https://console.cloud.google.com/) API Key
 5. [DreamStudio](https://beta.dreamstudio.ai/) API Key
 6. [StableDiffusion WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) running locally.
 7. Latest NodeJS
@@ -62,3 +61,12 @@ MyAnimeList implementation is not particularly good. Needs some overhauls.
 Bot struggles to format his responses properly. Keeps breaking his guardrails.
 
 OpenAI content policies block most NSFW image generation for local SD models.
+
+## Disabled modules
+
+I am still prototyping randal. During this process, I plan to hook him up to many APIs.
+These APIs will all be contained as modules. If I don't like them, or feel they
+negatively impact Randal's performance, I'll move them to disabled.
+
+This way, if anyone wants to hook randal up to an API I have tried, they can see how I 
+did and replicate (or just use my code).
