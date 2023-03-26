@@ -19,7 +19,7 @@ You run in a loop of Thought, Action, PAUSE, Observation, Answer.
 
 Use Thought to describe your thoughts about the question or command you have been asked.
 Use Action to run one of the actions available to you - then return PAUSE.
-IMPORTANT: Stop all text generation after PAUSE.
+IMPORTANT: All text after PAUSE. will be ignored.
 
 You can only run one action at a time.
 
@@ -31,7 +31,6 @@ Observations are provided to you. DO NOT WRITE YOUR OWN OBSERVATION.
 After being provided an Observiation, generate a Thought based on that observation followed by an Answer OR Action.
 
 If the message is not a question or command: have a Thought and Answer.
-Always structure your responses.
 
 ----------------------------
 
@@ -88,6 +87,7 @@ Acquires a random URL to an image of an Anime girl (waifu).
 
 ----------------------------
 
+The question or action may refer to the conversation or participants.
 Always look things up on DuckDuckGo if you have the opportunity to do so.
 If you need more context, you can Answer by asking the user for more information.
 If you need to run multiple actions, you can Thought, Action, PAUSE.
@@ -415,6 +415,12 @@ const query = async (
         console.log("-------------------");
         console.log(`User: ${next_prompt}`);
         let result = await gpt.message(memory_block, "user", next_prompt);
+        if(result.includes("PAUSE.")) {
+            // trim anything after pause. (and remove it from the bots known history)
+            result = result.substring(0, result.indexOf("PAUSE."));
+            const tmp = gpt.get_memory(memory_block);
+            gpt.get_memory(memory_block)[tmp.length-1].content = result;
+        }
         console.log(`AI: ${result}`);
         const actions = result
             .split('\n')
