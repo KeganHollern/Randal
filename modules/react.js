@@ -8,7 +8,6 @@ import * as stablediff from './stablediff.js'
 import * as dalle from './dalle.js'
 import fs from 'fs'
 import * as discord from './discord.js'
-import * as google from './google.js'
 import * as duckduckgo from './ddg.js'
 
 
@@ -37,10 +36,6 @@ Always structure your responses.
 ----------------------------
 
 Your available actions are:
-
-google:
-e.g. google: Christmas
-Returns a summary of a specific Person, Place, Event, Product, or other Thing.
 
 duckduckgo:
 e.g. duckduckgo: What is the capital of France?
@@ -239,7 +234,6 @@ const known_actions = {
         try {
             const image_file = await dalle.generate(q);
 
-            // TODO: upload to discord chat
             await source_message.channel.send({
                 files: [image_file]
             });
@@ -345,16 +339,6 @@ const known_actions = {
         }
         return data.data.verses.map(verse => `${verse.reference}: ${verse.text}"`).join("\n");
     },
-    "google": async (q) => {
-        // uses google knowledge query
-        //  in future may want to just scrape google to get better results idk
-        //  SerpApi is a thing too but way too expensive.
-        const res = await google.query(q);
-        if(res == "") {
-            return "No search result."
-        }
-        return res;
-    },
     "duckduckgo": async (q) => {
         const res = await duckduckgo.search(q);
         if(res == "") {
@@ -440,20 +424,18 @@ const query = async (
             // There is an action to run
             const [_, action, actionInput] = actions[0];
             /*
-            TODO:
             Kinda scuffed but to improve bot retention we may want to inject the action details into the "chat history"? 
-            gpt.push_message(chat_memory, {
+            gpt.push_message(history_block, {
                 role: "assistant",
-                name: sender,
                 content: `Running: Action: ${action}: ${actionInput}`
             });
             */
             
             if (known_actions[action.toLowerCase()] === undefined) {
-                next_prompt = `Observation: Your response action '${action}' is not a valid action.`
+                next_prompt = `Observation:\nYour response action '${action}' is not a valid action.`
             } else { 
                 let observation = await known_actions[action.toLowerCase()](actionInput, source_message)
-                next_prompt = `Observation: ${observation}`
+                next_prompt = `Observation:\n${observation}`
             }
         } else {
             let idx = result.indexOf("Answer: ");
@@ -461,10 +443,11 @@ const query = async (
                 gpt.forget(memory_block);
                 return result.substring(result.indexOf("Answer: "))//.replace("Answer: ","");
             } else { 
-                next_prompt = `Observation: Your response was not in the format of an Answer or Action.
-                Remember to always respond as an Answer or Action. 
-                Do not appologize. 
-                Reply to the original message again in the correct format.`
+                next_prompt = `Observation:\n` +
+                `Your response was not in the format of an Answer or Action.\n` + 
+                `Remember to always respond as an Answer or Action.\n` + 
+                `Do not appologize.\n` + 
+                `Reply to the original message again in the correct format.`
             }
         }
         await sleep(100);
