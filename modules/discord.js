@@ -1,3 +1,6 @@
+/*
+    Discord chat and audio wrapper
+*/
 import Discord from 'discord.js';
 import { 
     joinVoiceChannel, 
@@ -40,6 +43,7 @@ client.on('ready', () => {
 client.on('messageCreate', message => {
     if (message.author.bot) return false;
 
+    
     // DMs
     if(message.channel.type == Discord.ChannelType.DM) {
         process_message(message);

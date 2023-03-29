@@ -17,7 +17,7 @@ discord.handle((message) => {
     const channel =  message.channel;
     const guild = message.guild;
     const content = message.content;
-    const sender = message.author.username;
+    const sender = message.author.id;
 
     // rate limit messaging per user
     let last_msg = Rates.get(message.author.id);
@@ -31,7 +31,7 @@ discord.handle((message) => {
     }
     
 
-    console.log("new message from " + sender);
+    console.log("new message from " + message.author.username);
     if(message.author.id == '414286316109430794') {
         message.reply('fuck you');
         return
@@ -60,18 +60,19 @@ discord.handle((message) => {
         return;
     }
 
-    // push the users message to history
-    gpt.push_message(chat_memory, {
-        role: "user",
-        name: sender,
-        content: message
-    });
+    
 
     react.query(
         content.replace("<@806981518483259412>", "Randal"),
         message,
         chat_memory)
         .then(response => {
+            // push the users message to history
+            gpt.push_message(chat_memory, {
+                role: "user",
+                name: sender,
+                content: content.replace("<@806981518483259412>", "Randal")
+            });
             // push response
             gpt.push_message(chat_memory, {
                 role: "assistant",
@@ -88,7 +89,7 @@ discord.handle((message) => {
               
                 return chunks
             } 
-            const parts = chunkSubstr( response, 2000);
+            const parts = chunkSubstr( response.replace("Answer: ", ""), 2000);
             parts.forEach((msg) => {
                 channel.send(msg);
             });

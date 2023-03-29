@@ -53,14 +53,18 @@ const message = async (memory_block, sender, message) => {
     while(response.status !== 200 && tries < 3) {
         tries++;
 
+        //console.log("==========================================");
         console.log("\tQuerying OpenAi...");
+        //console.log(block.history.slice(1).map((entry) => `\t${entry.role}: ${entry.content}`).join("\n"));
+        //console.log("==========================================");
         try {
+
             response = await openai.createChatCompletion({
                 model: model,
                 temperature: block.temperature,
                 messages: block.history,
             }, {
-                timeout: 5000
+                timeout: 10000
             });
         } catch(err) {
             response.status = 502;
@@ -75,7 +79,7 @@ const message = async (memory_block, sender, message) => {
     }
 
     // Debugging
-    console.log(response.data.usage);
+    //console.log(response.data.usage);
 
     block.history.push(response.data.choices[0].message);
     // probably not needed but we'll play with it

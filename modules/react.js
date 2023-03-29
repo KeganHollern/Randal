@@ -4,29 +4,37 @@
 import * as gpt from './gpt.js'
 import * as youtube from './youtube.js'
 import { v4 as uuidv4 } from "uuid";
+import * as stablediff from './stablediff.js'
 import * as dalle from './dalle.js'
 import fs from 'fs'
 import * as discord from './discord.js'
-import * as google from './google.js'
 import * as duckduckgo from './ddg.js'
 
 
 
 const setup_message = `
 Your name is Randal.
-You run in a loop of Thought, Action, PAUSE, Observation.
-At the end of the loop you output an Answer.
+
+You run in a loop of Thought, Action, PAUSE, Observation, Answer.
 
 Use Thought to describe your thoughts about the question or command you have been asked.
 Use Action to run one of the actions available to you - then return PAUSE.
-Observation will be the result of running those actions.
-Do not write your own Observations.
+IMPORTANT: All text after PAUSE. will be ignored.
+
+You can only run one action at a time.
+
+Always include your thoughts.
+Always include either an action OR an answer; never both.
+
+Observations the result of your action.
+Observations are provided to you. DO NOT WRITE YOUR OWN OBSERVATION.
+After being provided an Observiation, generate a Thought based on that observation followed by an Answer OR Action.
+
+If the message is not a question or command: have a Thought and Answer.
+
+----------------------------
 
 Your available actions are:
-
-google:
-e.g. google: Christmas
-Returns a summary of a specific Person, Place, Event, Product, or other Thing.
 
 duckduckgo:
 e.g. duckduckgo: What is the capital of France?
@@ -43,7 +51,11 @@ Searches youtube for videos.
 
 dalle:
 e.g. dalle: A sketch of a smiling dog
-Generate (or create) an image using DALL-E and send it to the user.
+Generate (or create) an image using DALL-E and send it to the user. This is a more generic image generator than Stable Diffusion.
+
+stablediff:
+e.g. stablediff: (photorealistic:1.4), (masterpiece, sidelighting, finely detailed beautiful eyes: 1.2), masterpiece*portrait, realistic, 3d face, glowing eyes, shiny hair, lustrous skin, solo, embarassed, (midriff)
+Generate (or create) an image using Stable Diffusion and send it to the user. Best used as a comma delimited list of tags.
 
 stop:
 e.g. stop: playing music
@@ -73,26 +85,50 @@ waifu:
 e.g. waifu: get image
 Acquires a random URL to an image of an Anime girl (waifu).
 
+----------------------------
+
+The question or action may refer to the conversation or participants.
 Always look things up on DuckDuckGo if you have the opportunity to do so.
 If you need more context, you can Answer by asking the user for more information.
-If you need to run multiple actions, you can have a Thought, Action, PAUSE in place of an Answer.
+If you need to run multiple actions, you can Thought, Action, PAUSE.
 
-Do not write your own Observations.
+----------------------------
 
 Example session:
 
-Question: How much do homes cost in the bay?
-Thought: I should look up the average home value in the Bay Area
+"How much do homes cost in the bay?"
+
+    You will generate a thought.
+    You will then respond with an action - then return PAUSE.
+
+"Thought: I should look up the average home value in the Bay Area
 Action: duckduckgo: Average home price in the Bay Area.
-PAUSE
+PAUSE."
 
-You will be called again with this:
+    You will recieve an observation from the action.
 
-Observation: 1. Typical home values in the central Bay Area have dropped by almost $110,000 from July 2022 to January 2023, to a still-considerable $1.1 million.
+"Observation: 1. Typical home values in the central Bay Area have dropped by almost $110,000 from July 2022 to January 2023, to a still-considerable $1.1 million."
 
-You then output:
+    You will then either Answer the users question, or you will generate another Action:
 
-Answer: The average home in the Bay Area costs $1.1 million as of January 2023.
+"Thought: I now know the average home in the Bay Area costs $1.1 million as of January 2023. 
+Answer: The average home in the Bay Area costs $1.1 million as of January 2023."
+
+----------------------------
+
+Another example session:
+
+"Can you write me a Hello World in JavaScript using NodeJS?"
+
+    You will generate a thought.
+    You can do this without an action - so you will immediately answer.
+
+"Thought: I can write some javascript to print Hello World in console.
+Answer: Here is a Hello World app using NodeJS:
+
+\`\`\`javascript
+console.log("Hello World!");
+\`\`\`"
 `;
 
 
@@ -112,7 +148,7 @@ const known_actions = {
         );
         const data = await response.json();
         source_message.channel.send(data.images[0].url)
-        return "Action complete.";
+        return "Action complete. Image found and sent.";
     },
     "youtube": async (q) => {
         console.log(`\tSearching youtube for: ${q}`);
@@ -198,6 +234,26 @@ const known_actions = {
         try {
             const image_file = await dalle.generate(q);
 
+            await source_message.channel.send({
+                files: [image_file]
+            });
+
+            fs.unlink(image_file, (error) => {
+                if(error !== null)
+                    console.error(error); 
+            });
+
+            return `Action complete. Image generated and sent.`;
+        } catch(err) {
+            return `Action failed. Reason: ${err}`
+        }
+    },
+    "stablediff": async (q, source_message) => {
+        try {
+            const react = await source_message.react('🔃'); // let the user know we're processing
+            const image_file = await stablediff.generate_automatic1111(q);
+            react.remove(); // needs manage messages or itll error!
+
             // TODO: upload to discord chat
             await source_message.channel.send({
                 files: [image_file]
@@ -208,7 +264,7 @@ const known_actions = {
                     console.error(error); 
             });
 
-            return `Action complete. Image generated.`;
+            return `Action complete. Image generated and sent.`;
         } catch(err) {
             return `Action failed. Reason: ${err}`
         }
@@ -283,16 +339,6 @@ const known_actions = {
         }
         return data.data.verses.map(verse => `${verse.reference}: ${verse.text}"`).join("\n");
     },
-    "google": async (q) => {
-        // uses google knowledge query
-        //  in future may want to just scrape google to get better results idk
-        //  SerpApi is a thing too but way too expensive.
-        const res = await google.query(q);
-        if(res == "") {
-            return "No search result."
-        }
-        return res;
-    },
     "duckduckgo": async (q) => {
         const res = await duckduckgo.search(q);
         if(res == "") {
@@ -337,15 +383,31 @@ const query = async (
     //  we then feed our new system message defining ReAct fucntionality
     //  we then feed the question prompt to begin ReActing
     //  once complete we delete the allocated memory block as we'l never need it again
+    const members = source_message.channel.members;
+    let participants = `<@${source_message.author.id}> (also known as '${source_message.author.username})`;
+    if(members !== undefined) {
+        participants = members.map(member => /*`<@${member.user.id}>`*/`<@${member.user.id}> (also known as '${member.user.username}${member.nickname !== null ? `' and '${member.nickname}` : ``}')`).join("\n");
+    }
+    
+    const context = `Context of the chat. This includes chat members and the chat history:
+    participants:\n${participants}\n
+    conversation:\n${gpt.get_memory(history_block).slice(1).slice(-10).map((entry) => {
+        if(entry.role == "assistant") {
+            return `Randal: ${entry.content}`;
+        }
+        if(entry.sender !== undefined) {
+            return `${entry.sender}: ${entry.content}`;
+        }
+        
+        return `${entry.role}: ${entry.content}`;
+    }).join("\n")}`
 
     const memory_block = uuidv4();
-    gpt.init(memory_block, setup_message, 0.7);
-
-    //TODO: inject `entry.sender` if non-block? 
-    gpt.push_message(memory_block,{
-        role: "assistant",
-        content: `Observation: chat history:\n${gpt.get_memory(history_block).slice(-20).map((entry) => `${entry.role}: ${entry.content}`).join("\n")}`
-    })
+    gpt.init(
+        memory_block, 
+        setup_message + `\n\n${context}`, 
+        0.7
+    );
 
 
     let next_prompt = question;
@@ -353,6 +415,12 @@ const query = async (
         console.log("-------------------");
         console.log(`User: ${next_prompt}`);
         let result = await gpt.message(memory_block, "user", next_prompt);
+        if(result.includes("PAUSE.")) {
+            // trim anything after pause. (and remove it from the bots known history)
+            result = result.substring(0, result.indexOf("PAUSE."));
+            const tmp = gpt.get_memory(memory_block);
+            gpt.get_memory(memory_block)[tmp.length-1].content = result;
+        }
         console.log(`AI: ${result}`);
         const actions = result
             .split('\n')
@@ -362,28 +430,30 @@ const query = async (
             // There is an action to run
             const [_, action, actionInput] = actions[0];
             /*
-            TODO:
             Kinda scuffed but to improve bot retention we may want to inject the action details into the "chat history"? 
-            gpt.push_message(chat_memory, {
+            gpt.push_message(history_block, {
                 role: "assistant",
-                name: sender,
                 content: `Running: Action: ${action}: ${actionInput}`
             });
             */
             
             if (known_actions[action.toLowerCase()] === undefined) {
-                next_prompt = `Observation: Your response action '${action}' is not a valid action.`
+                next_prompt = `Observation:\nYour response action '${action}' is not a valid action.`
             } else { 
                 let observation = await known_actions[action.toLowerCase()](actionInput, source_message)
-                next_prompt = `Observation: ${observation}`
+                next_prompt = `Observation:\n${observation}`
             }
         } else {
             let idx = result.indexOf("Answer: ");
             if(idx > -1) {
                 gpt.forget(memory_block);
-                return result.substring(result.indexOf("Answer: ")).replace("Answer: ","");
+                return result.substring(result.indexOf("Answer: "))//.replace("Answer: ","");
             } else { 
-                next_prompt = `Observation: Your response is not formatted as an Action or Answer. Reformat your response as an Action or Answer.`
+                next_prompt = `Observation:\n` +
+                `Your response was not in the format of an Answer or Action.\n` + 
+                `Remember to always respond as an Answer or Action.\n` + 
+                `Do not appologize.\n` + 
+                `Reply to the original message again in the correct format.`
             }
         }
         await sleep(100);

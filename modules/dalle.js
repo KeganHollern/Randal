@@ -1,3 +1,8 @@
+/* 
+  Dall-E API integration
+  
+  no longer used
+*/
 import { Configuration, OpenAIApi } from 'openai';
 import * as tmp from 'tmp'
 import fs from 'fs'
@@ -7,7 +12,6 @@ const configuration = new Configuration({
     apiKey: process.env.OPENAI_KEY,
 });
 const openai = new OpenAIApi(configuration);
-const model = "gpt-3.5-turbo";
 
 const downloadImage = (url) => {
     return new Promise((resolve, reject) => {
