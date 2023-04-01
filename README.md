@@ -12,7 +12,6 @@ Please read the following paper to learn more on reasoning and action
 in LLMs like GPT-3.5-Turbo: [https://arxiv.org/abs/2210.03629](https://arxiv.org/abs/2210.03629)
 
 ## Actions
-- Google Knowledge Graph Search
 - DuckDuckGo Web Search
 - Bible Search
 - MyAnimeList Search

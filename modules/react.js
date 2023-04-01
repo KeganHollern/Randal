@@ -252,7 +252,8 @@ const known_actions = {
         try {
             const react = await source_message.react('🔃'); // let the user know we're processing
             const image_file = await stablediff.generate_automatic1111(q);
-            react.remove(); // needs manage messages or itll error!
+            const user = source_message.client.user;
+            react.users.remove(user);
 
             // TODO: upload to discord chat
             await source_message.channel.send({

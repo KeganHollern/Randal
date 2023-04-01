@@ -32,10 +32,6 @@ discord.handle((message) => {
     
 
     console.log("new message from " + message.author.username);
-    if(message.author.id == '414286316109430794') {
-        message.reply('fuck you');
-        return
-    }
 
     
     // generic memory setup
