@@ -44,7 +44,7 @@ Returns the top web search results for a query.
 play:
 e.g. play: https://www.youtube.com/watch?v=dQw4w9WgXcQ
 e.g. play: EDM Music
-Plays music from youtube in the users voice chat.
+Plays music from youtube in the users voice chat. Enqueues song if something is already playing.
 
 youtube:
 e.g. youtube: Mr. Blue Sky
@@ -85,14 +85,6 @@ Returns verses from the bible relating to the search query.
 waifu:
 e.g. waifu: get image
 Acquires a random URL to an image of an Anime girl (waifu).
-
-remember:
-e.g. remember: kegan's age|24
-Remember some information. Key-Value pair split by the | character.
-
-recall:
-e.g. recall: kegan's age
-Recall some value previously remembered. Returns the value remembered or "No recollection.".
 
 ----------------------------
 
@@ -161,6 +153,7 @@ const known_actions = {
     },
     "recall": async (q, source_message) => {
         console.log(`\tRecall: ${q}`);
+        //TODO:
         const value = memory.get_memory(q);
         if(value === "") {
             return "No recollection."
@@ -169,7 +162,7 @@ const known_actions = {
     },
     "remember": async (q, source_message) => {
         console.log(`\tRecall: ${q}`);
-
+        //TODO:
         const parts = q.split('|').map(part => part.trim());
         if(parts.length !== 2) {
             return "Action failed. Reason: invalid command format. Example usage: 'remember: identifier|value to remember'.";
@@ -283,7 +276,7 @@ const known_actions = {
         if(queue.length === 0) {
             return "No songs are in the queue."
         }
-        const response = "Queue:\n";
+        let response = "Queue:\n";
         queue.map(item => item.name).forEach((name, idx) => {
             response += `${idx+1}. "${name}"\n`;
         });
