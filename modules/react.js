@@ -9,6 +9,7 @@ import * as dalle from './dalle.js'
 import fs from 'fs'
 import * as discord from './discord.js'
 import * as duckduckgo from './ddg.js'
+import * as memory from './memory.js'
 
 
 
@@ -85,6 +86,14 @@ waifu:
 e.g. waifu: get image
 Acquires a random URL to an image of an Anime girl (waifu).
 
+remember:
+e.g. remember: kegan's age|24
+Remember some information. Key-Value pair split by the | character.
+
+recall:
+e.g. recall: kegan's age
+Recall some value previously remembered. Returns the value remembered or "No recollection.".
+
 ----------------------------
 
 The question or action may refer to the conversation or participants.
@@ -149,6 +158,25 @@ const known_actions = {
         const data = await response.json();
         source_message.channel.send(data.images[0].url)
         return "Action complete. Image found and sent.";
+    },
+    "recall": async (q, source_message) => {
+        console.log(`\tRecall: ${q}`);
+        const value = memory.get_memory(q);
+        if(value === "") {
+            return "No recollection."
+        }
+        return value;
+    },
+    "remember": async (q, source_message) => {
+        console.log(`\tRecall: ${q}`);
+
+        const parts = q.split('|').map(part => part.trim());
+        if(parts.length !== 2) {
+            return "Action failed. Reason: invalid command format. Example usage: 'remember: identifier|value to remember'.";
+        }
+
+        memory.set_memory(parts[0], parts[1]);
+        return `Action succeeded. Remembered as ${parts[0]}.`;
     },
     "youtube": async (q, source_message) => {
         console.log(`\tSearching youtube for: ${q}`);
