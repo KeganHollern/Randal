@@ -154,8 +154,8 @@ const known_actions = {
         console.log(`\tSearching youtube for: ${q}`);
         let results = await youtube.find(q)
         let result_content = "Search results:\n";
-        results.videos.forEach((vid) => {
-            result_content += `Video: ${vid.title} by ${vid.author} @ ${vid.url}\n`
+        results.videos.forEach((vid, idx) => {
+            result_content += `${idx+1}. ${vid.url} - ${vid.title} by ${vid.author}\n`
         });
 
         return result_content;
@@ -188,15 +188,10 @@ const known_actions = {
 
         const result = await discord.play_in_channel(voice_channel, item);
         if(result) {
-            return `Action complete. Now playing ${title} @ ${url}.`
+            return `Action complete. Now playing ${url} - ${title}.`
         } else {
-            return `Action complete. Enqueued ${title} @ ${url}.`
+            return `Action complete. Enqueued ${url} - ${title}.`
         }
-    },
-    "videos": async (q, source_message) => {
-        console.log(`\tVideos: ${q}`);
-        // TODO 
-        return "Action failed. Reason: action not implemented";
     },
     "stop": async (q, source_message) => {
         const guild = source_message.guild;
@@ -211,24 +206,61 @@ const known_actions = {
         console.log(`\tStop: ${q}`);
 
         if(!discord.stop_playing(guild.id))
-            return "YAction failed. Reason: No music is being played."
+            return "Action failed. Reason: No music is being played."
 
         return "Action complete.";
     },
     "skip": async (q) => {
         console.log(`\tSkip: ${q}`);
-        // TODO 
-        return "Action failed. Reason: action not implemented";
+        const guild = source_message.guild;
+        if(guild === undefined) {
+            return "Action failed. Reason: The user is chatting in a Direct Message."
+        }
+        const voice_channel = source_message.member?.voice?.channel;
+        if(voice_channel === undefined) {
+            return "Action failed. Reason: The user is not in a voice chat."
+        }
+
+        discord.skip_audio(guild.id)
+
+        return "Action complete.";
     },
     "song": async (q) => {
         console.log(`\tSong: ${q}`);
-        // TODO 
-        return "Action failed. Reason: action not implemented";
+        const guild = source_message.guild;
+        if(guild === undefined) {
+            return "Action failed. Reason: The user is chatting in a Direct Message."
+        }
+        /*
+        const voice_channel = source_message.member?.voice?.channel;
+        if(voice_channel === undefined) {
+            return "Action failed. Reason: The user is not in a voice chat."
+        }
+        */
+
+        const title = discord.now_playing(guild.id);
+        if(title === "") {
+            return "No song is currently being played.";
+        }
+        return `Currently playing ${title}.`;
     },
     "queue": async (q) => {
         console.log(`\tQueue: ${q}`);
-        // TODO 
-        return "Action failed. Reason: action not implemented";
+        const guild = source_message.guild;
+        if(guild === undefined) {
+            return "Action failed. Reason: The user is chatting in a Direct Message."
+        }
+
+        const queue = discord.get_queue(guild.id);
+        if(queue.length === 0) {
+            return "No songs are in the queue."
+        }
+        const response = "Queue:\n";
+        queue.map(item => item.name).forEach((name, idx) => {
+            response += `${idx+1}. ${name}\n`;
+        });
+
+        return response;
     },
     "dalle": async (q, source_message) => {
         try {
@@ -252,10 +284,10 @@ const known_actions = {
         try {
             const react = await source_message.react('🔃'); // let the user know we're processing
             const image_file = await stablediff.generate_automatic1111(q);
+
             const user = source_message.client.user;
             react.users.remove(user);
 
-            // TODO: upload to discord chat
             await source_message.channel.send({
                 files: [image_file]
             });
