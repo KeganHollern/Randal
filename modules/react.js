@@ -67,7 +67,7 @@ Skip the current song in the users voice chat.
 
 song:
 e.g. song: what song
-Retrieves the name and url of the song currently being played.
+Retrieves the name of the song currently being played.
 
 anime:
 e.g. anime: PSYCHO PASS
@@ -150,7 +150,7 @@ const known_actions = {
         source_message.channel.send(data.images[0].url)
         return "Action complete. Image found and sent.";
     },
-    "youtube": async (q) => {
+    "youtube": async (q, source_message) => {
         console.log(`\tSearching youtube for: ${q}`);
         let results = await youtube.find(q)
         let result_content = "Search results:\n";
@@ -210,7 +210,7 @@ const known_actions = {
 
         return "Action complete.";
     },
-    "skip": async (q) => {
+    "skip": async (q, source_message) => {
         console.log(`\tSkip: ${q}`);
         const guild = source_message.guild;
         if(guild === undefined) {
@@ -225,7 +225,7 @@ const known_actions = {
 
         return "Action complete.";
     },
-    "song": async (q) => {
+    "song": async (q, source_message) => {
         console.log(`\tSong: ${q}`);
         const guild = source_message.guild;
         if(guild === undefined) {
@@ -242,9 +242,9 @@ const known_actions = {
         if(title === "") {
             return "No song is currently being played.";
         }
-        return `Currently playing ${title}.`;
+        return `Currently playing "${title}".`;
     },
-    "queue": async (q) => {
+    "queue": async (q, source_message) => {
         console.log(`\tQueue: ${q}`);
         const guild = source_message.guild;
         if(guild === undefined) {
@@ -257,7 +257,7 @@ const known_actions = {
         }
         const response = "Queue:\n";
         queue.map(item => item.name).forEach((name, idx) => {
-            response += `${idx+1}. ${name}\n`;
+            response += `${idx+1}. "${name}"\n`;
         });
 
         return response;
@@ -302,7 +302,7 @@ const known_actions = {
             return `Action failed. Reason: ${err}`
         }
     },
-    "anime": async (q) => {
+    "anime": async (q, source_message) => {
         console.log(`\tSearching MyAnimeList for: ${q}`);
         const response = await fetch(
             "https://api.jikan.moe/v4/anime?" +
@@ -338,7 +338,7 @@ const known_actions = {
         });
         return content;
     },
-    "bible": async (q) => {
+    "bible": async (q, source_message) => {
         console.log(`\tSearching Bible for: ${q}`);
         const response = await fetch(
             "https://api.scripture.api.bible/v1/bibles/de4e12af7f28f599-01/search?" +
@@ -372,7 +372,7 @@ const known_actions = {
         }
         return data.data.verses.map(verse => `${verse.reference}: ${verse.text}"`).join("\n");
     },
-    "duckduckgo": async (q) => {
+    "duckduckgo": async (q, source_message) => {
         const res = await duckduckgo.search(q);
         if(res == "") {
             return "No search result."
