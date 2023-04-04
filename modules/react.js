@@ -394,7 +394,7 @@ const known_actions = {
         return data.data.verses.map(verse => `${verse.reference}: ${verse.text}"`).join("\n");
     },
     "duckduckgo": async (q, source_message) => {
-        const res = await duckduckgo.search(q);
+        const res = await duckduckgo.search_lite(q);
         if(res == "") {
             return "No search result."
         }

@@ -4,7 +4,7 @@
 import { JSDOM } from 'jsdom'
 import * as fs from 'fs'
 
-
+//slower search but should be fairly stable
 const search = async (q) => {
     const dom = await JSDOM.fromURL(
         "https://html.duckduckgo.com/html/?" + new URLSearchParams({
@@ -38,10 +38,50 @@ const search = async (q) => {
         .join("\n");
 };  
 
+// faster search + likely better tokenized results
 const search_lite = async (q) => {
-    //https://lite.duckduckgo.com/lite/?q=QUERY
-    //TODO: scrape this for faster search results
-    // easier or harder to format depending on perspective
+    const dom = await JSDOM.fromURL(
+        "https://lite.duckduckgo.com/lite/?" + new URLSearchParams({
+            "q": q
+        }),
+        {
+            userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36"
+        }
+    );
+    const document = dom.window.document;
+
+    const table = document.querySelector("body > form > div > table:nth-child(7) > tbody");
+
+    function naiveInnerText(node) {
+        const Node = node; // We need Node(DOM's Node) for the constants, but Node doesn't exist in the nodejs global space, and any Node instance references the constants through the prototype chain
+        return [...node.childNodes].slice(0,10).map(node => {
+            switch (node.nodeType) {
+                case Node.TEXT_NODE:
+                    return node.textContent.trim();
+                case Node.ELEMENT_NODE:
+                    return naiveInnerText(node);
+                default:
+                    return "";
+            }
+        }).filter((element) => element !== "").join(" ");
+    }
+    // [nodeWithContent, nodeWithContent, ...]
+    const ts_with_content = [...table.children].filter((node,idx) => ((idx+1) % 4) !== 0);
+    // [[nodeWithTitle,nodeWithContent,nodeWithURL],...]
+    const tr_groups = [];
+    for (let i = 0; i < ts_with_content.length; i += 3) {
+        tr_groups.push(ts_with_content.slice(i, i + 3));
+    }
+    const resultText = tr_groups.slice(0,3).map((array, idx) => {
+        const titleNode = array[0];
+        const contentNode = array[1];
+        const urlNode = array[2];
+
+        return `${idx+1}. TITLE: [${naiveInnerText(titleNode)}], DESCRIPTION: [${naiveInnerText(contentNode)}], URL: [${naiveInnerText(urlNode)}]`
+    }).join("\n");
+      
+    
+    return resultText;
 }
 
-export { search }
+export { search, search_lite }
