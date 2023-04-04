@@ -64,7 +64,7 @@ const search_lite = async (q) => {
     
     function naiveInnerText(node) {
         const Node = node; // We need Node(DOM's Node) for the constants, but Node doesn't exist in the nodejs global space, and any Node instance references the constants through the prototype chain
-        return [...node.childNodes].slice(0,10).map(node => {
+        return [...node.childNodes].map(node => {
             switch (node.nodeType) {
                 case Node.TEXT_NODE:
                     return node.textContent.trim();
