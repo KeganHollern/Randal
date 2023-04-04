@@ -1,11 +1,10 @@
 /*
-    StableDiffusion APi
+    StableDiffusion API
 
-    TODO: perhaps allow for custom - local (or remote) API usage for custom SD models?
+    Intended for use with DREAMSTUDIO or Automatic1111 WebUI
 */
 import fs from 'fs'
 import * as tmp from 'tmp'
-
 
 const generate_api = async (q) => {
     
@@ -55,7 +54,7 @@ const generate_automatic1111 = async (q) => {
                 "negative_prompt": "(worst quality, low quality:1.4), monochrome, zombie, many fingers, few fingers",
                 
                 "width": 512,
-                "height": 512,
+                "height": 768,
                 "cfg_scale": 7,
 
                 "sampler_name": "DPM++ 2M Karras",

@@ -485,12 +485,13 @@ const query = async (
             const [_, action, actionInput] = actions[0];
             /*
             Kinda scuffed but to improve bot retention we may want to inject the action details into the "chat history"? 
+            
             gpt.push_message(history_block, {
                 role: "assistant",
                 content: `Running: Action: ${action}: ${actionInput}`
             });
             */
-            
+           
             if (known_actions[action.toLowerCase()] === undefined) {
                 next_prompt = `Observation:\nYour response action '${action}' is not a valid action.`
             } else { 
