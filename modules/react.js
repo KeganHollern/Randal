@@ -134,7 +134,7 @@ console.log("Hello World!");
 
 
 const actionRe = new RegExp('^Action: (\\w+): (.*)$');
-const answerRe = new RegExp('^Answer: (.*)$');
+// const answerRe = new RegExp('^Answer: (.*)$');
 
 const known_actions = {
     "waifu": async (q, source_message) => {
@@ -498,10 +498,10 @@ const query = async (
                 next_prompt = `Observation:\n${observation}`
             }
         } else {
-            let idx = result.indexOf("Answer: ");
+            let idx = result.indexOf("Answer:");
             if(idx > -1) {
                 gpt.forget(memory_block);
-                return result.substring(result.indexOf("Answer: "))//.replace("Answer: ","");
+                return result.substring(result.indexOf("Answer:"))//.replace("Answer: ","");
             } else { 
                 next_prompt = `Observation:\n` +
                 `Your response was not in the format of an Answer or Action.\n` + 
