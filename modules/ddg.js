@@ -49,9 +49,19 @@ const search_lite = async (q) => {
         }
     );
     const document = dom.window.document;
+    
+  
 
-    const table = document.querySelector("body > form > div > table:nth-child(7) > tbody");
-
+    //document.querySelector("body > form > div > table:nth-child(7) > tbody");
+    // the following occurs when "including results for - search only for"
+    //document.querySelector("body > form > div > table:nth-child(9) > tbody");
+    
+    // this shitty xpath evaluator should be more stable -.-
+    function getElementByXpath(path) {
+        return document.evaluate(path, document, null, dom.window.XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    }
+    const table = getElementByXpath("/html/body/form/div/table[3]/tbody");
+    
     function naiveInnerText(node) {
         const Node = node; // We need Node(DOM's Node) for the constants, but Node doesn't exist in the nodejs global space, and any Node instance references the constants through the prototype chain
         return [...node.childNodes].slice(0,10).map(node => {
