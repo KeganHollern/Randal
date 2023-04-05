@@ -86,8 +86,8 @@ const search_lite = async (q) => {
         const titleNode = array[0];
         const contentNode = array[1];
         const urlNode = array[2];
-
-        return `${idx+1}. TITLE: [${naiveInnerText(titleNode)}], DESCRIPTION: [${naiveInnerText(contentNode)}], URL: [${naiveInnerText(urlNode)}]`
+        // NOTE: scraper isn't including http(s) in the URL so we'll slap https in front (since it's all but standardized on the web now)
+        return `${idx+1}. TITLE: [${naiveInnerText(titleNode)}], DESCRIPTION: [${naiveInnerText(contentNode)}], URL: [https://${naiveInnerText(urlNode)}]`
     }).join("\n");
       
     

@@ -430,7 +430,7 @@ const query = async (
     question, // user input
     source_message, // discord source message for action use
     history_block, // previous chat history for context
-    max_turns = 7 // max iterations for thoughts
+    max_turns = 5 // max iterations for thoughts
 ) => {
     // we generate a unique memory block for each query
     //  we clone the chat history first
