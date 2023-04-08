@@ -1,11 +1,10 @@
 /*
-    StableDiffusion APi
+    StableDiffusion API
 
-    TODO: perhaps allow for custom - local (or remote) API usage for custom SD models?
+    Intended for use with DREAMSTUDIO or Automatic1111 WebUI
 */
 import fs from 'fs'
 import * as tmp from 'tmp'
-
 
 const generate_api = async (q) => {
     
@@ -43,7 +42,7 @@ const generate_api = async (q) => {
 //"(photorealistic:1.4), (masterpiece, sidelighting, finely detailed beautiful eyes: 1.2), masterpiece*portrait, realistic, 3d face, glowing eyes, shiny hair, lustrous skin, solo, embarassed, (midriff), nsfw"
 const generate_automatic1111 = async (q) => {
     const response = await fetch(
-        "http://127.0.0.1:7860/sdapi/v1/txt2img", 
+        `http://${process.env.STABLEDIFF_URI}/sdapi/v1/txt2img`, //"http://127.0.0.1:7860/sdapi/v1/txt2img", 
         {
             "headers": {
                 'Content-Type': 'application/json',
@@ -55,7 +54,7 @@ const generate_automatic1111 = async (q) => {
                 "negative_prompt": "(worst quality, low quality:1.4), monochrome, zombie, many fingers, few fingers",
                 
                 "width": 512,
-                "height": 512,
+                "height": 768,
                 "cfg_scale": 7,
 
                 "sampler_name": "DPM++ 2M Karras",

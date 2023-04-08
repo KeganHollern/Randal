@@ -247,6 +247,11 @@ const skip_audio = (guild_id) => {
     guild_player.player.stop();
 }
 
+const now_playing = (guild_id) => {
+    const guild_player = players.get(guild_id);
+    return guild_player.now;
+}
+
 // removes an item from the queue 
 //  returns the item or undefined if out of bounds
 const remove_item = (guild_id, idx) => {
@@ -275,6 +280,7 @@ export {
     clear_queue,
     get_queue,
     skip_audio,
-    remove_item
+    remove_item,
+    now_playing
  }
 

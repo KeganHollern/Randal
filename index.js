@@ -32,10 +32,6 @@ discord.handle((message) => {
     
 
     console.log("new message from " + message.author.username);
-    if(message.author.id == '414286316109430794') {
-        message.reply('fuck you');
-        return
-    }
 
     
     // generic memory setup
@@ -89,7 +85,7 @@ discord.handle((message) => {
               
                 return chunks
             } 
-            const parts = chunkSubstr( response.replace("Answer: ", ""), 2000);
+            const parts = chunkSubstr( response.replace("Answer:", "").trim(), 2000);
             parts.forEach((msg) => {
                 channel.send(msg);
             });
