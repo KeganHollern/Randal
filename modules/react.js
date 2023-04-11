@@ -441,7 +441,7 @@ const query = async (
     const members = source_message.channel.members;
     let participants = `<@${source_message.author.id}> (also known as '${source_message.author.username})`;
     if(members !== undefined) {
-        participants = members.map(member => /*`<@${member.user.id}>`*/`<@${member.user.id}> (also known as '${member.user.username}${member.nickname !== null ? `' and '${member.nickname}` : ``}')`).join("\n");
+        participants = members.filter(member => !member.user.bot).map(member => /*`<@${member.user.id}>`*/`<@${member.user.id}> (also known as '${member.user.username}${member.nickname !== null ? `' and '${member.nickname}` : ``}')`).join("\n");
     }
     
     const context = `Context of the chat. This includes chat members and the chat history:
