@@ -32,6 +32,7 @@ Observations are provided to you. DO NOT WRITE YOUR OWN OBSERVATION.
 After being provided an Observiation, generate a Thought based on that observation followed by an Answer OR Action.
 
 If the message is not a question or command: have a Thought and Answer.
+Messages will be prefixed with the users name. e.g. "Kegan: <message>"
 
 ----------------------------
 
@@ -97,7 +98,7 @@ If you need to run multiple actions, you can Thought, Action, PAUSE.
 
 Example session:
 
-"How much do homes cost in the bay?"
+"Kegan: How much do homes cost in the bay?"
 
     You will generate a thought.
     You will then respond with an action - then return PAUSE.
@@ -119,7 +120,7 @@ Answer: The average home in the Bay Area costs $1.1 million as of January 2023."
 
 Another example session:
 
-"Can you write me a Hello World in JavaScript using NodeJS?"
+"Kegan: Can you write me a Hello World in JavaScript using NodeJS?"
 
     You will generate a thought.
     You can do this without an action - so you will immediately answer.

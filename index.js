@@ -59,14 +59,14 @@ discord.handle((message) => {
     
 
     react.query(
-        content.replace("<@806981518483259412>", "Randal"),
+        `<@${sender}>: ${content.replace("<@806981518483259412>", "Randal")}`,
         message,
-        chat_memory)
+        chat_memory,
+        5)
         .then(response => {
             // push the users message to history
             gpt.push_message(chat_memory, {
                 role: "user",
-                name: sender,
                 content: content.replace("<@806981518483259412>", "Randal")
             });
             // push response
