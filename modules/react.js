@@ -43,16 +43,15 @@ Returns a summary of the top search results for the query.
 
 play:
 e.g. play: https://www.youtube.com/watch?v=dQw4w9WgXcQ
-e.g. play: EDM Music
 Plays music from youtube in the users voice chat. Enqueues song if something is already playing.
 
 youtube:
 e.g. youtube: Mr. Blue Sky
-Searches youtube for videos.
+Searches youtube for videos. Returns information on the videos along with their URLs.
 
 dalle:
 e.g. dalle: A sketch of a smiling dog
-Generate (or create) an image using DALL-E and send it to the user. This is a more generic image generator than Stable Diffusion.
+Generate (or create) an image using DALL-E and send it to the user.
 
 stop:
 e.g. stop: playing music
