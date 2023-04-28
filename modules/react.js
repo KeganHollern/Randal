@@ -4,7 +4,6 @@
 import * as gpt from './gpt.js'
 import * as youtube from './youtube.js'
 import { v4 as uuidv4 } from "uuid";
-import * as stablediff from './stablediff.js'
 import * as dalle from './dalle.js'
 import fs from 'fs'
 import * as discord from './discord.js'
@@ -40,7 +39,7 @@ Your available actions are:
 
 duckduckgo:
 e.g. duckduckgo: What is the capital of France?
-Returns the top web search results for a query.
+Returns a summary of the top search results for the query.
 
 play:
 e.g. play: https://www.youtube.com/watch?v=dQw4w9WgXcQ
@@ -54,10 +53,6 @@ Searches youtube for videos.
 dalle:
 e.g. dalle: A sketch of a smiling dog
 Generate (or create) an image using DALL-E and send it to the user. This is a more generic image generator than Stable Diffusion.
-
-stablediff:
-e.g. stablediff: (photorealistic:1.4), (masterpiece, sidelighting, finely detailed beautiful eyes: 1.2), masterpiece*portrait, realistic, 3d face, glowing eyes, shiny hair, lustrous skin, solo, embarassed, (midriff)
-Generate (or create) an image using Stable Diffusion and send it to the user. Best used as a comma delimited list of tags.
 
 stop:
 e.g. stop: playing music
@@ -287,28 +282,6 @@ const known_actions = {
     "dalle": async (q, source_message) => {
         try {
             const image_file = await dalle.generate(q);
-
-            await source_message.channel.send({
-                files: [image_file]
-            });
-
-            fs.unlink(image_file, (error) => {
-                if(error !== null)
-                    console.error(error); 
-            });
-
-            return `Action complete. Image generated and sent.`;
-        } catch(err) {
-            return `Action failed. Reason: ${err}`
-        }
-    },
-    "stablediff": async (q, source_message) => {
-        try {
-            const react = await source_message.react('🔃'); // let the user know we're processing
-            const image_file = await stablediff.generate_automatic1111(q);
-
-            const user = source_message.client.user;
-            react.users.remove(user);
 
             await source_message.channel.send({
                 files: [image_file]
