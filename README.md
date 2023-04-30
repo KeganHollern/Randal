@@ -17,15 +17,12 @@ in LLMs like GPT-3.5-Turbo: [https://arxiv.org/abs/2210.03629](https://arxiv.org
 - MyAnimeList Search
 - Youtube Search
 - Music Player
-- Stable Diffusion Image Generation (API or Local)
 - Dall-E Image Generation
 
 ## Requirements
 1. [OpenAI](https://platform.openai.com/) API Key
 2. [Discord Bot](https://discord.com/developers/applications) API Key
 3. [API.Bible](https://scripture.api.bible/) Key
-5. [DreamStudio](https://beta.dreamstudio.ai/) API Key
-6. [StableDiffusion WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui) running locally.
 7. Latest NodeJS
 
 ## Using
@@ -33,8 +30,6 @@ in LLMs like GPT-3.5-Turbo: [https://arxiv.org/abs/2210.03629](https://arxiv.org
   - `OPENAI_KEY`
   - `DISCORD_KEY`
   - `BIBLE_KEY`
-  - `GOOGLE_API_KEY`
-  - `DREAMSTUDIO_KEY`
   
 2. Run `npm install`
 3. Invite your discord bot to a server

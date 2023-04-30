@@ -12,7 +12,7 @@ const configuration = new Configuration({
     apiKey: process.env.OPENAI_KEY,
 });
 const openai = new OpenAIApi(configuration);
-const model = "gpt-3.5-turbo";
+const model = "gpt-4";
 
 // map of message histories
 // used for retaining memory
@@ -64,7 +64,7 @@ const message = async (memory_block, sender, message) => {
                 temperature: block.temperature,
                 messages: block.history,
             }, {
-                timeout: 10000
+                timeout: 20000
             });
         } catch(err) {
             response.status = 502;

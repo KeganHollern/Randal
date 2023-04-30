@@ -4,7 +4,6 @@
 import * as gpt from './gpt.js'
 import * as youtube from './youtube.js'
 import { v4 as uuidv4 } from "uuid";
-import * as stablediff from './stablediff.js'
 import * as dalle from './dalle.js'
 import fs from 'fs'
 import * as discord from './discord.js'
@@ -32,6 +31,7 @@ Observations are provided to you. DO NOT WRITE YOUR OWN OBSERVATION.
 After being provided an Observiation, generate a Thought based on that observation followed by an Answer OR Action.
 
 If the message is not a question or command: have a Thought and Answer.
+Messages will be prefixed with the users name. e.g. "Kegan: <message>"
 
 ----------------------------
 
@@ -39,24 +39,19 @@ Your available actions are:
 
 duckduckgo:
 e.g. duckduckgo: What is the capital of France?
-Returns the top web search results for a query.
+Returns a summary of the top search results for the query.
 
 play:
 e.g. play: https://www.youtube.com/watch?v=dQw4w9WgXcQ
-e.g. play: EDM Music
 Plays music from youtube in the users voice chat. Enqueues song if something is already playing.
 
 youtube:
 e.g. youtube: Mr. Blue Sky
-Searches youtube for videos.
+Searches youtube for videos. Returns information on the videos along with their URLs.
 
 dalle:
 e.g. dalle: A sketch of a smiling dog
-Generate (or create) an image using DALL-E and send it to the user. This is a more generic image generator than Stable Diffusion.
-
-stablediff:
-e.g. stablediff: (photorealistic:1.4), (masterpiece, sidelighting, finely detailed beautiful eyes: 1.2), masterpiece*portrait, realistic, 3d face, glowing eyes, shiny hair, lustrous skin, solo, embarassed, (midriff)
-Generate (or create) an image using Stable Diffusion and send it to the user. Best used as a comma delimited list of tags.
+Generate (or create) an image using DALL-E and send it to the user.
 
 stop:
 e.g. stop: playing music
@@ -97,7 +92,7 @@ If you need to run multiple actions, you can Thought, Action, PAUSE.
 
 Example session:
 
-"How much do homes cost in the bay?"
+"Kegan: How much do homes cost in the bay?"
 
     You will generate a thought.
     You will then respond with an action - then return PAUSE.
@@ -119,7 +114,7 @@ Answer: The average home in the Bay Area costs $1.1 million as of January 2023."
 
 Another example session:
 
-"Can you write me a Hello World in JavaScript using NodeJS?"
+"Kegan: Can you write me a Hello World in JavaScript using NodeJS?"
 
     You will generate a thought.
     You can do this without an action - so you will immediately answer.
@@ -301,28 +296,6 @@ const known_actions = {
             return `Action failed. Reason: ${err}`
         }
     },
-    "stablediff": async (q, source_message) => {
-        try {
-            const react = await source_message.react('🔃'); // let the user know we're processing
-            const image_file = await stablediff.generate_automatic1111(q);
-
-            const user = source_message.client.user;
-            react.users.remove(user);
-
-            await source_message.channel.send({
-                files: [image_file]
-            });
-
-            fs.unlink(image_file, (error) => {
-                if(error !== null)
-                    console.error(error); 
-            });
-
-            return `Action complete. Image generated and sent.`;
-        } catch(err) {
-            return `Action failed. Reason: ${err}`
-        }
-    },
     "anime": async (q, source_message) => {
         console.log(`\tSearching MyAnimeList for: ${q}`);
         const response = await fetch(
@@ -440,7 +413,7 @@ const query = async (
     const members = source_message.channel.members;
     let participants = `<@${source_message.author.id}> (also known as '${source_message.author.username})`;
     if(members !== undefined) {
-        participants = members.map(member => /*`<@${member.user.id}>`*/`<@${member.user.id}> (also known as '${member.user.username}${member.nickname !== null ? `' and '${member.nickname}` : ``}')`).join("\n");
+        participants = members.filter(member => !member.user.bot).map(member => /*`<@${member.user.id}>`*/`<@${member.user.id}> (also known as '${member.user.username}${member.nickname !== null ? `' and '${member.nickname}` : ``}')`).join("\n");
     }
     
     const context = `Context of the chat. This includes chat members and the chat history:
